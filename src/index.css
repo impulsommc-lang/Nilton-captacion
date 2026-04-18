@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-brand-gold: #ffed51;
+  --color-brand-black: #111111;
+  --color-gray-light: #F7F7F7;
+  --color-gray-medium: #E0E0E0;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-brand-black antialiased overflow-x-hidden;
+  }
+}
+
+.hero-image-overlay {
+  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+}
+
+.brand-logo-border {
+  border-left: 4px solid var(--color-brand-gold);
+}
+
+.option-card {
+  @apply border border-gray-medium p-8 rounded-none cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 bg-white hover:border-brand-gold hover:bg-gray-light;
+}
+
+.option-card.selected {
+  @apply border-brand-black border-2 bg-gray-light;
+}
+
+.option-icon-wrapper {
+  @apply w-10 h-10 border-[1.5px] border-brand-black rounded-full flex items-center justify-center;
+}
+
+.btn-geometric-primary {
+  @apply px-10 py-4 bg-brand-black text-brand-gold font-bold uppercase tracking-wider text-xs border-none cursor-pointer hover:opacity-90 transition-opacity;
+}
+
+.btn-geometric-secondary {
+  @apply px-8 py-4 border border-gray-medium bg-transparent text-brand-black font-semibold uppercase tracking-wider text-xs cursor-pointer hover:bg-gray-light transition-colors;
+}
+
+.ornament-text {
+  @apply absolute bottom-10 right-10 opacity-5 text-8xl font-black pointer-events-none select-none;
+}
+
+.app-shell-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  height: 100vh;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .app-shell-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
