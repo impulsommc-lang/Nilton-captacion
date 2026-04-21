@@ -103,15 +103,30 @@ export default function App() {
           </div>
           
           <div className="relative z-10 flex flex-col h-full">
-            <div className="flex flex-col mb-32">
-              <img src="/honne-logo.webp" alt="Honne Inmobiliaria Logo" className="w-16 mb-4 filter invert" />
-              <span className="text-xl font-extrabold tracking-[0.3em] uppercase brand-logo-border pl-4">HONNE</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex flex-col mb-32"
+            >
+              <span className="text-xl font-extrabold tracking-[0.4em] uppercase brand-logo-border pl-4">HONNE</span>
+            </motion.div>
             <div className="flex-1 flex flex-col justify-center">
-              <h1 className="text-5xl font-bold leading-[1.1] mb-6 tracking-tight">Vende tu propiedad en tiempo récord</h1>
-              <p className="text-base leading-relaxed text-white/70 font-light max-w-[300px]">
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-5xl font-bold leading-[1.1] mb-6 tracking-tight"
+              >
+                Vende tu propiedad en tiempo récord
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.7 }}
+                transition={{ delay: 0.5 }}
+                className="text-base leading-relaxed text-white font-light max-w-[300px]"
+              >
                 👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio y sin perder tiempo con curiosos.
-              </p>
+              </motion.p>
             </div>
             <div className="mt-auto">
               <span className="text-[11px] uppercase tracking-[0.2em] opacity-60">Especialistas en Captación</span>
@@ -141,12 +156,28 @@ export default function App() {
                   exit={{ opacity: 0, y: -20 }}
                   className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center"
                 >
-                  <div className="lg:hidden mb-8 flex flex-col items-center">
-                     <img src="/honne-logo.webp" alt="Honne Inmobiliaria Logo" className="w-16 mb-4" />
-                     <span className="text-xl font-extrabold tracking-[0.3em] uppercase brand-logo-border pl-4">HONNE</span>
-                  </div>
-                  <h1 className="lg:hidden text-4xl md:text-6xl font-bold mb-6 tracking-tighter max-w-2xl mx-auto leading-tight">Vende tu propiedad en <span className="text-brand-gold italic">tiempo récord</span></h1>
-                  <p className="lg:hidden text-gray-500 mb-10 max-w-lg mx-auto text-sm md:text-base px-4">👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio.</p>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="lg:hidden mb-8"
+                  >
+                     <span className="text-xl font-extrabold tracking-[0.4em] uppercase brand-logo-border pl-4">HONNE</span>
+                  </motion.div>
+                  <motion.h1 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="lg:hidden text-4xl md:text-6xl font-bold mb-6 tracking-tighter max-w-2xl mx-auto leading-tight"
+                  >
+                    Vende tu propiedad en <span className="text-brand-gold italic">tiempo récord</span>
+                  </motion.h1>
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="lg:hidden text-gray-500 mb-10 max-w-lg mx-auto text-sm md:text-base px-4"
+                  >
+                    👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio.
+                  </motion.p>
                   
                   <button 
                     onClick={startQuiz}
@@ -174,32 +205,63 @@ export default function App() {
                   <div className="w-full max-w-2xl flex flex-col items-center">
                     <AnimatePresence mode="wait">
                       {quizStep === 1 && (
-                        <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full">
+                        <motion.div 
+                          key="step1" 
+                          initial={{ opacity: 0, x: 40, filter: 'blur(10px)' }} 
+                          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} 
+                          exit={{ opacity: 0, x: -40, filter: 'blur(10px)' }} 
+                          className="w-full"
+                        >
                           <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 max-w-[500px] mx-auto px-2">¿Qué tipo de propiedad evalúas vender?</h2>
                           <div className="grid grid-cols-2 gap-3 sm:gap-5 w-full max-w-[540px] mx-auto">
-                            {(['Departamento', 'Casa', 'Terreno', 'Local Comercial'] as PropertyType[]).map((type) => {
+                            {(['Departamento', 'Casa', 'Terreno', 'Local Comercial'] as PropertyType[]).map((type, i) => {
                               const icons = { 'Departamento': Building2, 'Casa': Home, 'Terreno': MapIcon, 'Local Comercial': Store };
                               const Icon = icons[type];
                               return (
-                                <button key={type} onClick={() => { setQuizData({ ...quizData, type }); nextStep(); }} className="option-card !p-4 sm:!p-8">
+                                <motion.button 
+                                  key={type} 
+                                  initial={{ opacity: 0, y: 20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: i * 0.1 }}
+                                  onClick={() => { setQuizData({ ...quizData, type }); nextStep(); }} 
+                                  className="option-card !p-4 sm:!p-8"
+                                >
                                   <div className="option-icon-wrapper !w-8 !h-8 sm:!w-10 sm:!h-10"><Icon size={14} className="sm:size-16" /></div>
                                   <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-wider">{type}</span>
-                                </button>
+                                </motion.button>
                               );
                             })}
                           </div>
                         </motion.div>
                       )}
                       {quizStep === 2 && (
-                        <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full">
+                        <motion.div 
+                          key="step2" 
+                          initial={{ opacity: 0, x: 40, filter: 'blur(10px)' }} 
+                          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} 
+                          exit={{ opacity: 0, x: -40, filter: 'blur(10px)' }} 
+                          className="w-full"
+                        >
                           <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 max-w-[500px] mx-auto text-balance px-2">¿En qué distrito se encuentra?</h2>
                           <div className="grid grid-cols-2 gap-3 sm:gap-5 w-full max-w-[540px] mx-auto">
-                            {(['Miraflores', 'Surco', 'San Isidro', 'San Borja', 'La Molina'] as District[]).map((d) => (
-                              <button key={d} onClick={() => { setQuizData({ ...quizData, district: d }); nextStep(); }} className="option-card !p-4 sm:!p-8">
+                            {(['Miraflores', 'Surco', 'San Isidro', 'San Borja', 'La Molina'] as District[]).map((d, i) => (
+                              <motion.button 
+                                key={d} 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.05 }}
+                                onClick={() => { setQuizData({ ...quizData, district: d }); nextStep(); }} 
+                                className="option-card !p-4 sm:!p-8"
+                              >
                                 <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-wider">{d}</span>
-                              </button>
+                              </motion.button>
                             ))}
-                            <div className="col-span-2 sm:col-span-2 p-4 sm:p-6 bg-gray-light border border-dashed border-gray-medium">
+                            <motion.div 
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.3 }}
+                              className="col-span-2 sm:col-span-2 p-4 sm:p-6 bg-gray-light border border-dashed border-gray-medium"
+                            >
                               <p className="text-[9px] uppercase tracking-widest font-bold opacity-40 mb-2 text-left">¿Otro distrito?</p>
                               <div className="flex gap-2">
                                 <input 
@@ -207,48 +269,87 @@ export default function App() {
                                   placeholder="Distrito..." 
                                   value={otherDistrict}
                                   onChange={(e) => setOtherDistrict(e.target.value)}
-                                  className="flex-1 bg-white border border-gray-medium px-4 py-2 text-sm focus:outline-none focus:border-brand-black transition-colors"
+                                  className="flex-1 bg-white border border-gray-medium px-4 py-2 text-sm focus:outline-none focus:border-brand-black transition-all"
                                 />
-                                <button disabled={!otherDistrict.trim()} onClick={() => { setQuizData({ ...quizData, district: otherDistrict }); nextStep(); }} className="bg-brand-black text-brand-gold px-4 disabled:opacity-30 group"><ArrowRight size={16} /></button>
+                                <button disabled={!otherDistrict.trim()} onClick={() => { setQuizData({ ...quizData, district: otherDistrict }); nextStep(); }} className="bg-brand-black text-brand-gold px-4 disabled:opacity-30 group active:scale-95 transition-transform"><ArrowRight size={16} /></button>
                               </div>
-                            </div>
+                            </motion.div>
                           </div>
                         </motion.div>
                       )}
                       {quizStep === 3 && (
-                        <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full">
+                        <motion.div 
+                          key="step3" 
+                          initial={{ opacity: 0, x: 40, filter: 'blur(10px)' }} 
+                          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} 
+                          exit={{ opacity: 0, x: -40, filter: 'blur(10px)' }} 
+                          className="w-full"
+                        >
                           <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 max-w-[500px] mx-auto px-2">¿Cuándo necesitas el dinero?</h2>
                           <div className="flex flex-col gap-3 w-full max-w-[500px] mx-auto">
-                            {(['Menos de 3 meses', '3 a 6 meses', 'Solo exploro el mercado'] as Timeline[]).map((t) => (
-                              <button key={t} onClick={() => { setQuizData({ ...quizData, timeline: t }); nextStep(); }} className="option-card !flex-row !justify-start !px-6 sm:!px-8 !py-4 sm:!py-8">
+                            {(['Menos de 3 meses', '3 a 6 meses', 'Solo exploro el mercado'] as Timeline[]).map((t, i) => (
+                              <motion.button 
+                                key={t} 
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                onClick={() => { setQuizData({ ...quizData, timeline: t }); nextStep(); }} 
+                                className="option-card !flex-row !justify-start !px-6 sm:!px-8 !py-4 sm:!py-8"
+                              >
                                 <div className="option-icon-wrapper !w-8 !h-8 sm:!w-10 sm:!h-10"><Clock size={14} /></div>
                                 <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-wider text-left">{t}</span>
-                              </button>
+                              </motion.button>
                             ))}
                           </div>
                         </motion.div>
                       )}
                       {quizStep === 4 && (
-                        <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full">
+                        <motion.div 
+                          key="step4" 
+                          initial={{ opacity: 0, x: 40, filter: 'blur(10px)' }} 
+                          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} 
+                          exit={{ opacity: 0, x: -40, filter: 'blur(10px)' }} 
+                          className="w-full"
+                        >
                           <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 max-w-[500px] mx-auto px-2">¿Has intentado venderla antes?</h2>
                           <div className="flex flex-col gap-3 w-full max-w-[500px] mx-auto">
-                            {(['Sí, por mi cuenta', 'Sí, con otra agencia', 'No, es la primera vez'] as PreviousAttempt[]).map((a) => (
-                              <button key={a} onClick={() => { setQuizData({ ...quizData, attempted: a }); nextStep(); }} className="option-card !py-5 sm:!py-8">
+                            {(['Sí, por mi cuenta', 'Sí, con otra agencia', 'No, es la primera vez'] as PreviousAttempt[]).map((a, i) => (
+                              <motion.button 
+                                key={a} 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                onClick={() => { setQuizData({ ...quizData, attempted: a }); nextStep(); }} 
+                                className="option-card !py-5 sm:!py-8"
+                              >
                                 <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-wider text-center">{a}</span>
-                              </button>
+                              </motion.button>
                             ))}
                           </div>
                         </motion.div>
                       )}
                       {quizStep === 5 && (
-                        <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full">
+                        <motion.div 
+                          key="step5" 
+                          initial={{ opacity: 0, x: 40, filter: 'blur(10px)' }} 
+                          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} 
+                          exit={{ opacity: 0, x: -40, filter: 'blur(10px)' }} 
+                          className="w-full"
+                        >
                           <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12 max-w-[500px] mx-auto px-2">¿Cuál es tu mayor preocupación?</h2>
                           <div className="flex flex-col gap-3 w-full max-w-[500px] mx-auto">
-                            {(['Malbaratar mi patrimonio', 'Tiempo perdido con curiosos', 'Problemas legales/seguridad'] as Concern[]).map((c) => (
-                              <button key={c} onClick={() => { setQuizData({ ...quizData, concern: c }); nextStep(); }} className="option-card !flex-row !justify-between !px-6 sm:!px-8 !py-5 sm:!py-8 text-left">
+                            {(['Malbaratar mi patrimonio', 'Tiempo perdido con curiosos', 'Problemas legales/seguridad'] as Concern[]).map((c, i) => (
+                              <motion.button 
+                                key={c} 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                onClick={() => { setQuizData({ ...quizData, concern: c }); nextStep(); }} 
+                                className="option-card !flex-row !justify-between !px-6 sm:!px-8 !py-5 sm:!py-8 text-left"
+                              >
                                 <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-wider pr-4">{c}</span>
                                 <ShieldCheck size={18} className="text-brand-gold shrink-0" />
-                              </button>
+                              </motion.button>
                             ))}
                           </div>
                         </motion.div>
@@ -344,7 +445,7 @@ function HeroSection({ onStart }: { onStart: () => void }) {
             Vende tu propiedad en <span className="text-brand-gold italic">tiempo récord</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-500 mb-12 max-w-lg leading-relaxed">
-            👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio y sin perder tiempo con curiosos.
+            👉 Descubre la estrategia de comercialización de <span className="text-brand-black font-semibold">Honne Inmobiliaria</span> para vender al mejor precio y sin perder tiempo con curiosos.
           </p>
           <button 
             onClick={onStart}
@@ -713,7 +814,7 @@ function ResultSection({ data }: { data: QuizData }) {
 
           <button 
             type="submit"
-            className="w-full btn-geometric-primary !py-5 flex items-center justify-center gap-3"
+            className="w-full btn-geometric-primary !py-5 flex items-center justify-center gap-3 active:scale-95 transition-transform"
           >
             <span className="relative z-10">Generar Mensaje WhatsApp</span>
             <ArrowRight size={16} className="relative z-10" />

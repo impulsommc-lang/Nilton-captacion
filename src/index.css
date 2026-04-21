@@ -4,6 +4,7 @@
 @theme {
   --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --color-brand-gold: #ffed51;
+  --color-brand-gold-muted: rgba(255, 237, 81, 0.2);
   --color-brand-black: #111111;
   --color-gray-light: #F7F7F7;
   --color-gray-medium: #E0E0E0;
@@ -11,12 +12,12 @@
 
 @layer base {
   body {
-    @apply bg-white text-brand-black antialiased overflow-x-hidden;
+    @apply bg-white text-brand-black antialiased overflow-x-hidden selection:bg-brand-gold selection:text-brand-black;
   }
 }
 
 .hero-image-overlay {
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.85));
 }
 
 .brand-logo-border {
@@ -24,34 +25,66 @@
 }
 
 .option-card {
-  @apply border border-gray-medium p-8 rounded-none cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 bg-white hover:border-brand-gold hover:bg-gray-light;
+  @apply border border-gray-medium p-8 rounded-none cursor-pointer transition-all duration-500 flex flex-col items-center justify-center gap-4 bg-white relative overflow-hidden;
+}
+
+.option-card:hover {
+  @apply border-brand-black scale-[1.02] z-10 shadow-xl shadow-black/5;
+}
+
+.option-card:active {
+  @apply scale-[0.98];
 }
 
 .option-card.selected {
-  @apply border-brand-black border-2 bg-gray-light;
+  @apply border-brand-black bg-gray-light ring-1 ring-brand-black;
 }
 
 .option-icon-wrapper {
-  @apply w-10 h-10 border-[1.5px] border-brand-black rounded-full flex items-center justify-center;
+  @apply w-10 h-10 border-[1.5px] border-brand-black rounded-full flex items-center justify-center transition-transform duration-500;
+}
+
+.option-card:hover .option-icon-wrapper {
+  @apply scale-110 rotate-12;
 }
 
 .btn-geometric-primary {
-  @apply px-10 py-4 bg-brand-black text-brand-gold font-bold uppercase tracking-wider text-xs border-none cursor-pointer hover:opacity-90 transition-opacity;
+  @apply relative px-10 py-4 bg-brand-black text-brand-gold font-bold uppercase tracking-widest text-[10px] border-none cursor-pointer transition-all duration-300;
+  box-shadow: 0 4px 0px rgba(0,0,0,0.1);
+}
+
+.btn-geometric-primary:hover {
+  @apply -translate-y-0.5 shadow-lg;
+}
+
+.btn-geometric-primary:active {
+  @apply translate-y-0 shadow-sm;
 }
 
 .btn-geometric-secondary {
-  @apply px-8 py-4 border border-gray-medium bg-transparent text-brand-black font-semibold uppercase tracking-wider text-xs cursor-pointer hover:bg-gray-light transition-colors;
+  @apply px-8 py-4 border border-gray-medium bg-transparent text-brand-black font-semibold uppercase tracking-widest text-[10px] cursor-pointer transition-all duration-300 hover:bg-gray-light hover:border-brand-black;
 }
 
 .ornament-text {
-  @apply absolute bottom-10 right-10 opacity-5 text-8xl font-black pointer-events-none select-none;
+  @apply absolute bottom-10 right-10 opacity-[0.03] text-[15vw] font-black pointer-events-none select-none italic;
+  font-family: var(--font-sans);
 }
 
 .app-shell-grid {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 480px 1fr;
   height: 100vh;
   width: 100%;
+}
+
+.floating {
+  animation: floating 6s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
 }
 
 @media (max-width: 1024px) {
@@ -60,3 +93,6 @@
     height: auto;
   }
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
