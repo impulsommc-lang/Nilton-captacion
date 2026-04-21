@@ -103,11 +103,14 @@ export default function App() {
           </div>
           
           <div className="relative z-10 flex flex-col h-full">
-            <span className="text-xl font-extrabold tracking-[0.3em] uppercase mb-32 brand-logo-border pl-4">HONNE</span>
+            <div className="flex flex-col mb-32">
+              <img src="/honne-logo.webp" alt="Honne Inmobiliaria Logo" className="w-16 mb-4 filter invert" />
+              <span className="text-xl font-extrabold tracking-[0.3em] uppercase brand-logo-border pl-4">HONNE</span>
+            </div>
             <div className="flex-1 flex flex-col justify-center">
               <h1 className="text-5xl font-bold leading-[1.1] mb-6 tracking-tight">Vende tu propiedad en tiempo récord</h1>
               <p className="text-base leading-relaxed text-white/70 font-light max-w-[300px]">
-                Descubre la estrategia de comercialización de Sandra Barrera para vender al mejor precio y sin perder tiempo con curiosos.
+                👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio y sin perder tiempo con curiosos.
               </p>
             </div>
             <div className="mt-auto">
@@ -138,11 +141,12 @@ export default function App() {
                   exit={{ opacity: 0, y: -20 }}
                   className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center"
                 >
-                  <div className="lg:hidden mb-8">
+                  <div className="lg:hidden mb-8 flex flex-col items-center">
+                     <img src="/honne-logo.webp" alt="Honne Inmobiliaria Logo" className="w-16 mb-4" />
                      <span className="text-xl font-extrabold tracking-[0.3em] uppercase brand-logo-border pl-4">HONNE</span>
                   </div>
                   <h1 className="lg:hidden text-4xl md:text-6xl font-bold mb-6 tracking-tighter max-w-2xl mx-auto leading-tight">Vende tu propiedad en <span className="text-brand-gold italic">tiempo récord</span></h1>
-                  <p className="lg:hidden text-gray-500 mb-10 max-w-lg mx-auto text-sm md:text-base px-4">Descubre la estrategia de comercialización de Sandra Barrera para vender al mejor precio.</p>
+                  <p className="lg:hidden text-gray-500 mb-10 max-w-lg mx-auto text-sm md:text-base px-4">👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio.</p>
                   
                   <button 
                     onClick={startQuiz}
@@ -297,8 +301,8 @@ export default function App() {
                 <User size={16} className="text-gray-500" />
               </div>
               <div className="agent-details">
-                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-brand-black">Sandra Barrera</p>
-                <p className="text-[8px] sm:text-[10px] text-gray-500 font-medium">960 873 225</p>
+                <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-brand-black">Angela Carmona</p>
+                <p className="text-[8px] sm:text-[10px] text-gray-500 font-medium">922 142 073</p>
               </div>
             </div>
             
@@ -340,7 +344,7 @@ function HeroSection({ onStart }: { onStart: () => void }) {
             Vende tu propiedad en <span className="text-brand-gold italic">tiempo récord</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-500 mb-12 max-w-lg leading-relaxed">
-            Descubre la estrategia de comercialización de Sandra Barrera para vender al mejor precio y sin perder tiempo con curiosos.
+            👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio y sin perder tiempo con curiosos.
           </p>
           <button 
             onClick={onStart}
@@ -619,7 +623,7 @@ function ResultSection({ data }: { data: QuizData }) {
   };
 
   const getWhatsAppLink = () => {
-    const message = `Hola Sandra, soy *${name}*. Acabo de completar el Quiz Inmobiliario para vender mi propiedad.\n\n` +
+    const message = `Hola Angela, soy *${name}*. Acabo de completar el Quiz Inmobiliario para vender mi propiedad.\n\n` +
       `*DETALLES DE LA PROPIEDAD:*\n` +
       `🏠 *Tipo:* ${data.type}\n` +
       `📍 *Distrito:* ${data.district}\n` +
@@ -628,7 +632,7 @@ function ResultSection({ data }: { data: QuizData }) {
       `⚠️ *Preocupación:* ${data.concern}\n\n` +
       `Me gustaría recibir mi Hoja de Ruta de Venta y agendar una breve llamada.`;
     
-    return `https://wa.me/51960873225?text=${encodeURIComponent(message)}`;
+    return `https://wa.me/51922142073?text=${encodeURIComponent(message)}`;
   };
 
   if (isSent) {
@@ -643,7 +647,7 @@ function ResultSection({ data }: { data: QuizData }) {
         </div>
         <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tighter leading-none">¡Excelente, {name}!</h2>
         <p className="text-sm sm:text-base text-gray-500 max-w-sm mb-10 font-light leading-relaxed">
-          Para finalizar, haz clic en el botón de abajo. Esto abrirá WhatsApp con todas tus respuestas listas para que Sandra las reciba.
+          Angela Carmona revisará tu información y te contactará en breve vía WhatsApp con tu Hoja de Ruta personalizada.
         </p>
         <a 
           href={getWhatsAppLink()}
@@ -651,7 +655,7 @@ function ResultSection({ data }: { data: QuizData }) {
           rel="noopener noreferrer"
           className="btn-geometric-primary flex items-center justify-center gap-4 !w-full sm:!w-auto !px-10 !py-5"
         >
-          Enviar al WhatsApp de Sandra
+          Enviar al WhatsApp de Angela
         </a>
       </motion.div>
     );
@@ -715,7 +719,7 @@ function ResultSection({ data }: { data: QuizData }) {
             <ArrowRight size={16} className="relative z-10" />
           </button>
           
-          <p className="text-[9px] text-center text-gray-400 leading-relaxed max-w-[240px] mx-auto uppercase tracking-wider font-bold opacity-40">
+            <p className="text-[9px] text-center text-gray-400 leading-relaxed max-w-[240px] mx-auto uppercase tracking-wider font-bold opacity-40">
             Seguridad y confidencialidad garantizada por Honne Inmobiliaria.
           </p>
         </form>
