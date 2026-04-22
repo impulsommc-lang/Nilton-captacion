@@ -13,6 +13,7 @@ import {
   ArrowRight, 
   CheckCircle2, 
   Phone, 
+  Mail,
   User, 
   ArrowLeft,
   Loader2,
@@ -715,13 +716,7 @@ function ProcessingSection({ district }: { district: string }) {
 
 function ResultSection({ data }: { data: QuizData }) {
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [isSent, setIsSent] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSent(true);
-  };
+  const [email, setEmail] = useState('');
 
   const getWhatsAppLink = () => {
     const message = `Hola Angela, soy *${name}*. Acabo de completar el Quiz Inmobiliario para vender mi propiedad.\n\n` +
@@ -731,36 +726,17 @@ function ResultSection({ data }: { data: QuizData }) {
       `📅 *Urgencia:* ${data.timeline}\n` +
       `🔄 *Historial:* ${data.attempted}\n` +
       `⚠️ *Preocupación:* ${data.concern}\n\n` +
+      `📧 *Email:* ${email}\n\n` +
       `Me gustaría recibir mi Hoja de Ruta de Venta y agendar una breve llamada.`;
     
     return `https://wa.me/51922142073?text=${encodeURIComponent(message)}`;
   };
 
-  if (isSent) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="h-full min-h-[400px] flex flex-col items-center justify-center p-6 sm:p-12 text-center"
-      >
-        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-brand-gold rounded-full flex items-center justify-center mb-6 sm:mb-8">
-          <CheckCircle2 size={32} />
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tighter leading-none">¡Excelente, {name}!</h2>
-        <p className="text-sm sm:text-base text-gray-500 max-w-sm mb-10 font-light leading-relaxed">
-          Angela Carmona revisará tu información y te contactará en breve vía WhatsApp con tu Hoja de Ruta personalizada.
-        </p>
-        <a 
-          href={getWhatsAppLink()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-geometric-primary flex items-center justify-center gap-4 !w-full sm:!w-auto !px-10 !py-5"
-        >
-          Enviar al WhatsApp de Angela
-        </a>
-      </motion.div>
-    );
-  }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Use window.open for better mobile experience with WhatsApp deep links
+    window.open(getWhatsAppLink(), '_blank');
+  };
 
   return (
     <div className="flex flex-col min-h-full">
@@ -769,9 +745,9 @@ function ResultSection({ data }: { data: QuizData }) {
           <Lock size={12} />
           <span className="text-[9px] uppercase font-bold tracking-widest text-brand-black/40">Acceso Restringido • Privacidad Total</span>
         </div>
-        <h2 className="text-3xl sm:text-5xl font-bold tracking-tighter mb-6 leading-tight">Tu Hoja de Ruta de Venta está <span className="italic underline underline-offset-4 decoration-brand-gold decoration-4">lista</span>.</h2>
+        <h2 className="text-3xl sm:text-5xl font-bold tracking-tighter mb-6 leading-tight">Tu Hoja de Ruta está <span className="italic underline underline-offset-4 decoration-brand-gold decoration-4">lista</span>.</h2>
         <p className="text-sm sm:text-base text-gray-500 max-w-md font-light leading-relaxed">
-          Completa tus datos para enviarlos por WhatsApp y recibir tu estrategia personalizada de inmediato.
+          Ingresa tus datos finales para <span className="text-brand-black font-bold">abrir WhatsApp</span> y enviar tu solicitud a Angela Carmona automáticamente.
         </p>
       </div>
 
@@ -794,33 +770,35 @@ function ResultSection({ data }: { data: QuizData }) {
             
             <div className="space-y-2 text-left">
               <label className="text-[9px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
-                <Phone size={10} /> WhatsApp
+                <Mail size={10} /> Correo Electrónico
               </label>
               <div className="relative">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-3 border-r border-gray-medium">
-                  <span className="text-[10px] font-bold tracking-tighter">🇵🇪 +51</span>
-                </div>
                 <input 
                   required
-                  type="tel" 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="999..."
-                  className="w-full bg-white border border-gray-medium pl-20 pr-5 py-3.5 text-sm focus:outline-none focus:border-brand-black transition-all"
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ejemplo@correo.com"
+                  className="w-full bg-white border border-gray-medium px-5 py-3.5 text-sm focus:outline-none focus:border-brand-black transition-all"
                 />
               </div>
             </div>
           </div>
 
-          <button 
-            type="submit"
-            className="w-full btn-geometric-primary !py-5 flex items-center justify-center gap-3 active:scale-95 transition-transform"
-          >
-            <span className="relative z-10">Generar Mensaje WhatsApp</span>
-            <ArrowRight size={16} className="relative z-10" />
-          </button>
+          <div className="space-y-4">
+            <button 
+              type="submit"
+              className="w-full btn-geometric-primary !py-5 flex items-center justify-center gap-3 active:scale-95 transition-transform"
+            >
+              <span className="relative z-10">Solicitar a WhatsApp</span>
+              <ArrowRight size={16} className="relative z-10" />
+            </button>
+            <p className="text-[10px] text-gray-400 text-center italic">
+              * Al hacer clic, se abrirá WhatsApp con tu mensaje listo para enviar.
+            </p>
+          </div>
           
-            <p className="text-[9px] text-center text-gray-400 leading-relaxed max-w-[240px] mx-auto uppercase tracking-wider font-bold opacity-40">
+          <p className="text-[9px] text-center text-gray-400 leading-relaxed max-w-[240px] mx-auto uppercase tracking-wider font-bold opacity-40 pt-4">
             Seguridad y confidencialidad garantizada por Honne Inmobiliaria.
           </p>
         </form>
