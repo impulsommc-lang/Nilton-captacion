@@ -441,31 +441,6 @@ export default function App() {
                                 />
                               </div>
 
-                              <div className="flex items-center gap-2">
-                                <div className="h-[1px] bg-gray-medium flex-1" />
-                                <span className="text-[9px] sm:text-[10px] font-bold uppercase opacity-30">O elige un rango</span>
-                                <div className="h-[1px] bg-gray-medium flex-1" />
-                              </div>
-
-                              <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
-                                {(quizData.intention === 'Vender' 
-                                  ? (quizData.currency === 'USD' 
-                                      ? ['$300.000 o menos', '$300.000 - $600.000', '$600.000 - $900.000', '$900.000 - $1,2 millones', '$1,2 millones o más']
-                                      : ['S/ 1.000.000 o menos', 'S/ 1.000.000 - S/ 2.500.000', 'S/ 2.500.000 - S/ 4.000.000', 'S/ 4.000.000 o más'])
-                                  : (quizData.currency === 'USD'
-                                      ? ['$1.000 o menos', '$1.000 - $3.000', '$3.000 - $5.000', '$5.000 - $8.000', '$8.000 o más']
-                                      : ['S/ 3.500 o menos', 'S/ 3.500 - S/ 6.500', 'S/ 6.500 - S/ 10.000', 'S/ 10.000 o más'])
-                                ).map((item) => (
-                                  <button 
-                                    key={item}
-                                    onClick={() => { setQuizData({ ...quizData, value: item }); nextStep(); }}
-                                    className={`p-3 sm:p-4 border border-gray-medium hover:border-brand-gold hover:bg-brand-gold/5 transition-all text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-left ${quizData.value === item ? 'border-brand-gold bg-brand-gold/5' : ''}`}
-                                  >
-                                    {item}
-                                  </button>
-                                ))}
-                              </div>
-
                               {quizData.value && typeof quizData.value === 'string' && quizData.value.length > 0 && !quizData.value.includes('$') && !quizData.value.includes('S/') && (
                                 <button 
                                   onClick={nextStep}
