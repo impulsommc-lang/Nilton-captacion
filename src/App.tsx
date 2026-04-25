@@ -30,21 +30,24 @@ import {
 
 // --- Types ---
 
+type Intention = 'Vender' | 'Alquilar';
 type PropertyType = 'Departamento' | 'Casa' | 'Terreno' | 'Local Comercial';
 type District = 'Miraflores' | 'Surco' | 'San Isidro' | 'San Borja' | 'La Molina';
 type Timeline = 'lo antes posible' | '0-3 meses' | '4-6 meses' | '7-12 meses' | 'Más de 12 meses';
 type PreviousAttempt = 'Sí, por mi cuenta' | 'Sí, con otra agencia' | 'No, es la primera vez';
-type Concern = 'Malbaratar mi patrimonio' | 'Tiempo perdido con curiosos' | 'Problemas legales/seguridad';
+type Concern = string;
 type HomeCondition = 'No necesita nada' | 'Necesita un poco de trabajo' | 'Necesita mucho trabajo' | 'Demoler';
 type HomeValue = '$300.000 o menos' | '$300.000 - $600.000' | '$600.000 - $900.000' | '$900.000 - $1,2 millones' | '$1,2 millones o más';
-type ConstructionYear = '2000 o posterior' | 'década de 1990' | 'década de 1980' | 'década de 1970' | 'década de 1960' | 'Antes de 1960';
+type ConstructionYear = 'De estreno' | 'De 0 a 5 años' | 'De 6 a 10 años' | 'De 11 a 20 años' | 'De 20 a 50 años' | 'De 50 años a más';
 type YesNo = 'Sí' | 'No';
 
 interface QuizData {
+  intention: Intention | null;
   type: PropertyType | null;
   address: string | null;
   condition: HomeCondition | null;
-  value: HomeValue | null;
+  value: HomeValue | string | null;
+  currency: 'USD' | 'PEN';
   year: ConstructionYear | null;
   buying: YesNo | null;
   agent: YesNo | null;
@@ -60,10 +63,12 @@ export default function App() {
   const [step, setStep] = useState<'hero' | 'quiz' | 'processing' | 'result'>('hero');
   const [quizStep, setQuizStep] = useState(1);
   const [quizData, setQuizData] = useState<QuizData>({
+    intention: null,
     type: null,
     address: null,
     condition: null,
     value: null,
+    currency: 'USD',
     year: null,
     buying: null,
     agent: null,
@@ -142,7 +147,7 @@ export default function App() {
                 transition={{ delay: 0.3 }}
                 className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-6 tracking-tight"
               >
-                Vende tu propiedad en tiempo récord
+                Vende o Alquila tu propiedad con el respaldo de Honne
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0 }}
@@ -150,7 +155,7 @@ export default function App() {
                 transition={{ delay: 0.5 }}
                 className="text-sm sm:text-base leading-relaxed text-white font-light max-w-[300px]"
               >
-                👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio y sin perder tiempo con curiosos.
+                👉 Descubre la mejor estrategia de comercialización inmobiliaria para cerrar al mejor precio y sin perder tiempo.
               </motion.p>
             </div>
             <div className="mt-auto">
@@ -193,7 +198,7 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     className="lg:hidden text-4xl md:text-6xl font-bold mb-6 tracking-tighter max-w-2xl mx-auto leading-tight"
                   >
-                    Vende tu propiedad en <span className="text-brand-gold italic">tiempo récord</span>
+                    Vende o Alquila tu propiedad con <span className="text-brand-gold italic">Honne</span>
                   </motion.h1>
                   <motion.p 
                     initial={{ opacity: 0 }}
@@ -201,14 +206,14 @@ export default function App() {
                     transition={{ delay: 0.2 }}
                     className="lg:hidden text-gray-500 mb-10 max-w-lg mx-auto text-sm md:text-base px-4"
                   >
-                    👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender al mejor precio.
+                    👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender o alquilar al mejor precio.
                   </motion.p>
                   
                   <button 
                     onClick={startQuiz}
                     className="btn-geometric-primary group w-full sm:w-auto"
                   >
-                    Empezar evaluación gratuita
+                    Iniciar diagnóstico gratuito
                     <ArrowRight size={16} className="inline ml-3 group-hover:translate-x-1 transition-transform" />
                   </button>
                   <div className="ornament-text hidden sm:block">00</div>
@@ -247,7 +252,31 @@ export default function App() {
                             exit={{ opacity: 0, x: -20 }} 
                             className="w-full"
                           >
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">¿Qué tipo de propiedad deseas vender?</h2>
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">¿Cuál es tu intención principal?</h2>
+                            <p className="text-gray-400 mb-12 max-w-sm mx-auto text-xs sm:text-sm">Personalizaremos tu Ruta Honne según tu objetivo.</p>
+                            <div className="grid grid-cols-2 gap-4 w-full max-w-[500px] mx-auto">
+                              {(['Vender', 'Alquilar'] as ('Vender' | 'Alquilar')[]).map((opt) => (
+                                <button 
+                                  key={opt}
+                                  onClick={() => { setQuizData({ ...quizData, intention: opt as Intention }); nextStep(); }} 
+                                  className="option-card !py-12 flex flex-col items-center gap-4"
+                                >
+                                  <span className="option-label text-sm sm:text-lg font-bold uppercase tracking-[0.2em]">{opt === 'Vender' ? 'Quiero Vender' : 'Quiero Alquilar'}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+
+                        {quizStep === 2 && (
+                          <motion.div 
+                            key="step2" 
+                            initial={{ opacity: 0, x: 20 }} 
+                            animate={{ opacity: 1, x: 0 }} 
+                            exit={{ opacity: 0, x: -20 }} 
+                            className="w-full"
+                          >
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">¿Qué tipo de propiedad deseas {quizData.intention === 'Vender' ? 'vender' : 'alquilar'}?</h2>
                             <p className="text-gray-400 mb-12 max-w-sm mx-auto text-xs sm:text-sm">Selecciona la categoría que mejor describa tu inmueble.</p>
                             <div className="grid grid-cols-2 gap-3 sm:gap-5 w-full max-w-[540px] mx-auto">
                               {(['Departamento', 'Casa', 'Terreno', 'Local Comercial'] as PropertyType[]).map((type, i) => {
@@ -273,9 +302,9 @@ export default function App() {
                           </motion.div>
                         )}
 
-                        {quizStep === 2 && (
+                        {quizStep === 3 && (
                           <motion.div 
-                            key="step2" 
+                            key="step3" 
                             initial={{ opacity: 0, x: 20 }} 
                             animate={{ opacity: 1, x: 0 }} 
                             exit={{ opacity: 0, x: -20 }} 
@@ -348,13 +377,13 @@ export default function App() {
                           </motion.div>
                         )}
 
-                        {quizStep === 3 && (
-                          <motion.div key="step3" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Cuándo se construyó tu propiedad?</h2>
-                            <div className="grid gap-3">
+                        {quizStep === 4 && (
+                          <motion.div key="step4" className="w-full max-w-[500px] mx-auto">
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-10">¿Cuál es la antigüedad de tu propiedad?</h2>
+                            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
                               {[
-                                '2000 o posterior', 'década de 1990', 'década de 1980', 
-                                'década de 1970', 'década de 1960', 'Antes de 1960'
+                                'De estreno', 'De 0 a 5 años', 'De 6 a 10 años', 
+                                'De 11 a 20 años', 'De 20 a 50 años', 'De 50 años a más'
                               ].map((item, i) => (
                                 <motion.button 
                                   key={item}
@@ -365,37 +394,10 @@ export default function App() {
                                     setQuizData({ ...quizData, year: item as ConstructionYear }); 
                                     nextStep(); 
                                   }} 
-                                  className="option-card flex items-center justify-between !py-4 sm:!py-5 !px-6 sm:!px-8"
+                                  className="option-card flex items-center justify-between !py-3 sm:!py-5 !px-4 sm:!px-8"
                                 >
-                                  <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-widest">{item}</span>
-                                  <Calendar size={14} className="text-brand-gold opacity-50" />
-                                </motion.button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 4 && (
-                          <motion.div key="step4" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Cuánto vale tu propiedad? <span className="text-brand-gold">(Estimado)</span></h2>
-                            <div className="grid gap-3">
-                              {[
-                                '$300.000 o menos', '$300.000 - $600.000', 
-                                '$600.000 - $900.000', '$900.000 - $1,2 millones', '$1,2 millones o más'
-                              ].map((item, i) => (
-                                <motion.button 
-                                  key={item}
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: i * 0.05 }}
-                                  onClick={() => { 
-                                    setQuizData({ ...quizData, value: item as HomeValue }); 
-                                    nextStep(); 
-                                  }} 
-                                  className="option-card flex items-center justify-between !py-5 sm:!py-6 !px-6 sm:!px-8"
-                                >
-                                  <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-widest">{item}</span>
-                                  <DollarSign size={16} className="text-brand-gold" />
+                                  <span className="option-label text-[9px] sm:text-xs font-bold uppercase tracking-widest">{item}</span>
+                                  <Calendar size={12} className="text-brand-gold opacity-50 shrink-0" />
                                 </motion.button>
                               ))}
                             </div>
@@ -404,35 +406,82 @@ export default function App() {
 
                         {quizStep === 5 && (
                           <motion.div key="step5" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Cuál es el estado actual de la vivienda?</h2>
-                            <div className="grid gap-3">
-                              {[
-                                'No necesita nada', 'Necesita un poco de trabajo', 
-                                'Necesita mucho trabajo', 'Demoler'
-                              ].map((item, i) => (
-                                <motion.button 
-                                  key={item}
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: i * 0.05 }}
-                                  onClick={() => { 
-                                    setQuizData({ ...quizData, condition: item as HomeCondition }); 
-                                    nextStep(); 
-                                  }} 
-                                  className="option-card flex items-center justify-between !py-6 sm:!py-7 !px-6 sm:!px-8"
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4">Expectativa económica</h2>
+                            <p className="text-gray-400 mb-6 sm:mb-8 text-[10px] sm:text-sm">¿Cuánto esperas obtener por la {quizData.intention === 'Vender' ? 'venta' : 'renta'}?</p>
+                            
+                            <div className="space-y-4 sm:space-y-6">
+                              {/* Currency Selector */}
+                              <div className="flex justify-center mb-4 sm:mb-6">
+                                <div className="flex bg-gray-light p-1 rounded-sm border border-gray-medium">
+                                  <button 
+                                    onClick={() => setQuizData({ ...quizData, currency: 'USD' })}
+                                    className={`px-4 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${quizData.currency === 'USD' ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-gray-400 hover:text-brand-black'}`}
+                                  >
+                                    Dólares ($)
+                                  </button>
+                                  <button 
+                                    onClick={() => setQuizData({ ...quizData, currency: 'PEN' })}
+                                    className={`px-4 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${quizData.currency === 'PEN' ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-gray-400 hover:text-brand-black'}`}
+                                  >
+                                    Soles (S/)
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-gold">
+                                  {quizData.currency === 'USD' ? '$' : 'S/'}
+                                </span>
+                                <input 
+                                  type="number"
+                                  placeholder="Ingresa un monto"
+                                  className="w-full bg-gray-light border-2 border-transparent focus:border-brand-gold p-3 sm:p-4 pl-10 sm:pl-12 rounded-sm text-sm font-bold focus:outline-none transition-all"
+                                  value={typeof quizData.value === 'string' && !quizData.value.includes('$') && !quizData.value.includes('S/') ? quizData.value : ''}
+                                  onChange={(e) => setQuizData({ ...quizData, value: e.target.value })}
+                                />
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <div className="h-[1px] bg-gray-medium flex-1" />
+                                <span className="text-[9px] sm:text-[10px] font-bold uppercase opacity-30">O elige un rango</span>
+                                <div className="h-[1px] bg-gray-medium flex-1" />
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
+                                {(quizData.intention === 'Vender' 
+                                  ? (quizData.currency === 'USD' 
+                                      ? ['$300.000 o menos', '$300.000 - $600.000', '$600.000 - $900.000', '$900.000 - $1,2 millones', '$1,2 millones o más']
+                                      : ['S/ 1.000.000 o menos', 'S/ 1.000.000 - S/ 2.500.000', 'S/ 2.500.000 - S/ 4.000.000', 'S/ 4.000.000 o más'])
+                                  : (quizData.currency === 'USD'
+                                      ? ['$1.000 o menos', '$1.000 - $3.000', '$3.000 - $5.000', '$5.000 - $8.000', '$8.000 o más']
+                                      : ['S/ 3.500 o menos', 'S/ 3.500 - S/ 6.500', 'S/ 6.500 - S/ 10.000', 'S/ 10.000 o más'])
+                                ).map((item) => (
+                                  <button 
+                                    key={item}
+                                    onClick={() => { setQuizData({ ...quizData, value: item }); nextStep(); }}
+                                    className={`p-3 sm:p-4 border border-gray-medium hover:border-brand-gold hover:bg-brand-gold/5 transition-all text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-left ${quizData.value === item ? 'border-brand-gold bg-brand-gold/5' : ''}`}
+                                  >
+                                    {item}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {quizData.value && typeof quizData.value === 'string' && quizData.value.length > 0 && !quizData.value.includes('$') && !quizData.value.includes('S/') && (
+                                <button 
+                                  onClick={nextStep}
+                                  className="btn-geometric-primary !w-full !py-3 sm:!py-4"
                                 >
-                                  <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-widest">{item}</span>
-                                  <div className="w-4 h-4 rounded-full border-2 border-brand-gold/20 flex items-center justify-center" />
-                                </motion.button>
-                              ))}
+                                  Confirmar Monto
+                                </button>
+                              )}
                             </div>
                           </motion.div>
                         )}
 
                         {quizStep === 6 && (
                           <motion.div key="step6" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Cuándo te gustaría vender?</h2>
-                            <div className="grid gap-3">
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-10">¿Cuándo te gustaría {quizData.intention === 'Vender' ? 'vender' : 'alquilar'}?</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 sm:gap-3">
                               {[
                                 'lo antes posible', '0-3 meses', 
                                 '4-6 meses', '7-12 meses', 'Más de 12 meses'
@@ -443,7 +492,7 @@ export default function App() {
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ delay: i * 0.05 }}
                                   onClick={() => { setQuizData({ ...quizData, timeline: item as Timeline }); nextStep(); }} 
-                                  className="option-card !py-5 sm:!py-6 font-bold"
+                                  className="option-card !py-4 sm:!py-6 font-bold"
                                 >
                                   <span className="option-label text-[10px] sm:text-xs uppercase tracking-widest">{item}</span>
                                 </motion.button>
@@ -489,7 +538,7 @@ export default function App() {
 
                         {quizStep === 9 && (
                           <motion.div key="step9" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Has intentado venderla antes?</h2>
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Has intentado {quizData.intention === 'Vender' ? 'venderla' : 'alquilarla'} antes?</h2>
                             <div className="grid gap-3">
                               {(['Sí, por mi cuenta', 'Sí, con otra agencia', 'No, es la primera vez'] as PreviousAttempt[]).map((a, i) => (
                                 <motion.button 
@@ -509,9 +558,9 @@ export default function App() {
 
                         {quizStep === 10 && (
                           <motion.div key="step10" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 tracking-tight">¿Cuál es tu mayor preocupación?</h2>
-                            <p className="text-gray-400 mb-12 text-[10px] sm:text-xs">Entender tus prioridades nos ayuda a diseñar el mejor plan.</p>
-                            <div className="grid gap-3">
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 tracking-tight">¿Cuál es tu mayor preocupación?</h2>
+                            <p className="text-gray-400 mb-6 sm:mb-12 text-[10px] sm:text-xs">Entender tus prioridades nos ayuda a diseñar el mejor plan.</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 sm:gap-3">
                               {[
                                 { label: 'Malbaratar mi patrimonio', icon: Lock },
                                 { label: 'Tiempo perdido con curiosos', icon: User },
@@ -522,31 +571,57 @@ export default function App() {
                                   initial={{ opacity: 0, y: 10 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ delay: i * 0.1 }}
-                                  onClick={() => { setQuizData({ ...quizData, concern: item.label as Concern }); nextStep(); }} 
-                                  className="option-card flex items-center justify-between !py-6 sm:!py-7 !px-8 sm:!px-10"
+                                  onClick={() => { setQuizData({ ...quizData, concern: item.label }); nextStep(); }} 
+                                  className={`option-card flex items-center justify-between !py-4 sm:!py-7 !px-6 sm:!px-10 ${quizData.concern === item.label ? 'border-brand-gold bg-brand-gold/5' : ''}`}
                                 >
-                                  <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-widest">{item.label}</span>
-                                  <item.icon size={18} className="text-brand-gold" />
+                                  <span className="option-label text-[9px] sm:text-xs font-bold uppercase tracking-widest text-left pr-4">{item.label}</span>
+                                  <item.icon size={16} className="text-brand-gold shrink-0" />
                                 </motion.button>
                               ))}
+                            </div>
+
+                            <div className="mt-6 sm:mt-10 space-y-3 sm:space-y-4">
+                              <div className="flex items-center gap-2">
+                                <div className="h-[1px] bg-gray-medium flex-1" />
+                                <span className="text-[9px] font-bold uppercase opacity-30 tracking-[0.2em]">O escribe tu preocupación</span>
+                                <div className="h-[1px] bg-gray-medium flex-1" />
+                              </div>
+                              <div className="relative">
+                                <textarea 
+                                  placeholder="Escribe aquí tu mayor preocupación..."
+                                  value={!['Malbaratar mi patrimonio', 'Tiempo perdido con curiosos', 'Problemas legales/seguridad'].includes(quizData.concern || '') ? quizData.concern || '' : ''}
+                                  onChange={(e) => setQuizData({ ...quizData, concern: e.target.value })}
+                                  className="w-full bg-gray-light border-2 border-transparent focus:border-brand-gold p-4 sm:p-5 rounded-sm text-sm font-bold focus:outline-none transition-all min-h-[80px] sm:min-h-[100px] resize-none"
+                                />
+                              </div>
+                              {quizData.concern && quizData.concern.length > 0 && !['Malbaratar mi patrimonio', 'Tiempo perdido con curiosos', 'Problemas legales/seguridad'].includes(quizData.concern) && (
+                                <motion.button 
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  onClick={nextStep}
+                                  className="btn-geometric-primary !w-full !py-4 sm:!py-5 flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-[0.2em]"
+                                >
+                                  Continuar <ArrowRight size={16} />
+                                </motion.button>
+                              )}
                             </div>
                           </motion.div>
                         )}
 
                         {quizStep === 11 && (
                           <motion.div key="step11" className="w-full max-w-[440px] mx-auto">
-                            <div className="flex flex-col items-center text-center mb-16">
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-gold rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-brand-gold/30">
-                                <ShieldCheck size={40} className="text-brand-black sm:size-12" />
-                              </div>
-                              <h2 className="text-2xl sm:text-4xl font-bold mb-6 tracking-tighter italic uppercase underline decoration-brand-gold/30">Análisis Completo</h2>
-                              <p className="text-gray-500 font-medium leading-relaxed text-xs sm:text-sm">
-                                Hemos recopilado toda la información necesaria para preparar tu <span className="text-brand-black font-extrabold underline decoration-brand-gold decoration-2">Hoja de Ruta de Venta Personalizada</span>.
+                            <div className="flex flex-col items-center text-center mb-10 sm:mb-16">
+                              <div className="w-16 h-16 sm:w-24 sm:h-24 bg-brand-gold rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-2xl shadow-brand-gold/30">
+                                <ShieldCheck size={32} className="text-brand-black sm:size-12" />
+                                </div>
+                              <h2 className="text-xl sm:text-4xl font-bold mb-4 sm:mb-6 tracking-tighter italic uppercase underline decoration-brand-gold/30">Análisis Completo</h2>
+                              <p className="text-gray-500 font-medium leading-relaxed text-[10px] sm:text-sm px-4">
+                                Hemos recopilado toda la información necesaria para preparar tu <span className="text-brand-black font-extrabold underline decoration-brand-gold decoration-2">Ruta de {quizData.intention === 'Vender' ? 'Venta' : 'Alquiler'} Honne Personalizada</span>.
                               </p>
                             </div>
                             <button 
                               onClick={nextStep}
-                              className="w-full btn-geometric-primary !py-6 sm:!py-7 flex items-center justify-center gap-6 text-[10px] sm:text-xs font-extrabold uppercase tracking-[0.4em] shadow-2xl"
+                              className="w-full btn-geometric-primary !py-5 sm:!py-7 flex items-center justify-center gap-6 text-[10px] sm:text-xs font-extrabold uppercase tracking-[0.4em] shadow-2xl"
                             >
                               Finalizar Evaluación <ArrowRight size={20} />
                             </button>
@@ -578,7 +653,7 @@ export default function App() {
           </div>
           
           <footer className="p-6 border-t border-gray-medium bg-white z-20 flex justify-between items-center shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">© 2024 Honne Inmobiliaria</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">© 2020 Honne Inmobiliaria</span>
             <div className="flex gap-4 opacity-30">
               <Phone size={14} />
               <Mail size={14} />
@@ -616,7 +691,7 @@ function ProcessingSection({ district }: { district: string | null }) {
         animate={{ opacity: 1, y: 0 }}
         className="text-2xl font-bold mb-4"
       >
-        Analizando comportamiento del mercado en <span className="text-brand-gold">{district || 'tu zona'}</span>...
+        Generando tu Ruta de Venta Honne personalizada...
       </motion.h2>
       
       <motion.div
@@ -641,20 +716,23 @@ function ResultSection({ data }: { data: QuizData }) {
   const [email, setEmail] = useState('');
 
   const getWhatsAppLink = () => {
-    const message = `Hola Angela, soy *${name}*. Acabo de completar el Quiz Inmobiliario para vender mi propiedad.\n\n` +
+    const formattedValue = typeof data.value === 'string' && !data.value.includes('$') && !data.value.includes('S/') 
+      ? `${data.currency === 'USD' ? '$' : 'S/'} ${data.value}`
+      : data.value;
+
+    const message = `Hola Angela, soy *${name}*. Acabo de completar el Quiz Inmobiliario para ${data.intention === 'Vender' ? 'vender' : 'alquilar'} mi propiedad.\n\n` +
       `*DETALLES DE LA PROPIEDAD:*\n` +
       `🏠 *Tipo:* ${data.type}\n` +
       `📍 *Ubicación:* ${data.address || 'No especificada'}\n` +
-      `📅 *Construcción:* ${data.year || 'No especificado'}\n` +
-      `🛠️ *Estado:* ${data.condition || 'No especificado'}\n` +
-      `💰 *Valor Est.:* ${data.value || 'No especificado'}\n` +
+      `📅 *Antigüedad:* ${data.year || 'No especificada'}\n` +
+      `💰 *Valor Est.:* ${formattedValue || 'No especificada'}\n` +
       `⏰ *Urgencia:* ${data.timeline}\n` +
       `🔄 *Historial:* ${data.attempted}\n` +
       `🛒 *Busca comprar:* ${data.buying || 'N/A'}\n` +
       `💼 *Trabaja con agente:* ${data.agent || 'N/A'}\n` +
       `⚠️ *Preocupación:* ${data.concern}\n\n` +
       `📧 *Email:* ${email}\n\n` +
-      `Me gustaría recibir mi Hoja de Ruta de Venta y agendar una breve llamada.`;
+      `Me gustaría recibir mi ${data.intention === 'Vender' ? 'Hoja de Ruta de Venta' : 'Ruta de Alquiler Honne'} y agendar una breve llamada.`;
     
     return `https://wa.me/51922142073?text=${encodeURIComponent(message)}`;
   };
@@ -666,18 +744,18 @@ function ResultSection({ data }: { data: QuizData }) {
 
   return (
     <div className="flex flex-col min-h-full">
-      <div className="p-8 sm:p-16 lg:p-20 flex flex-col items-center text-center border-b border-gray-medium">
-        <div className="flex items-center gap-2 mb-6 text-brand-gold">
+      <div className="p-6 sm:p-16 lg:p-20 flex flex-col items-center text-center border-b border-gray-medium">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6 text-brand-gold">
           <Lock size={12} />
           <span className="text-[9px] uppercase font-bold tracking-widest text-brand-black/40">Acceso Restringido • Privacidad Total</span>
         </div>
-        <h2 className="text-3xl sm:text-5xl font-bold tracking-tighter mb-6 leading-tight">Tu Hoja de Ruta está <span className="italic underline underline-offset-4 decoration-brand-gold decoration-4">lista</span>.</h2>
-        <p className="text-sm sm:text-base text-gray-500 max-w-md font-light leading-relaxed">
-          Ingresa tus datos finales para <span className="text-brand-black font-bold">abrir WhatsApp</span> y enviar tu solicitud a Angela Carmona automáticamente.
+        <h2 className="text-2xl sm:text-5xl font-bold tracking-tighter mb-4 sm:mb-6 leading-tight">Tu Ruta de Venta Honne está <span className="italic underline underline-offset-4 decoration-brand-gold decoration-4">lista</span>.</h2>
+        <p className="text-xs sm:text-base text-gray-500 max-w-md font-light leading-relaxed">
+          Ingresa tus datos finales para <span className="text-brand-black font-bold">abrir WhatsApp</span> y enviar tu solicitud automáticamente.
         </p>
       </div>
 
-      <div className="p-8 sm:p-16 lg:p-20 bg-gray-light">
+      <div className="p-6 sm:p-16 lg:p-20 bg-gray-light">
         <form onSubmit={handleSubmit} className="w-full max-w-sm mx-auto space-y-6 sm:space-y-8">
           <div className="grid gap-5">
             <div className="space-y-2 text-left">
@@ -696,7 +774,7 @@ function ResultSection({ data }: { data: QuizData }) {
             
             <div className="space-y-2 text-left">
               <label className="text-[9px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
-                <Mail size={10} /> Correo Electrónico
+                <Mail size={10} /> Correo electrónico
               </label>
               <div className="relative">
                 <input 
