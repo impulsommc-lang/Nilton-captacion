@@ -720,19 +720,19 @@ function ResultSection({ data }: { data: QuizData }) {
       ? `${data.currency === 'USD' ? '$' : 'S/'} ${data.value}`
       : data.value;
 
-    const message = `Hola Angela, soy *${name}*. Acabo de completar el Quiz Inmobiliario para ${data.intention === 'Vender' ? 'vender' : 'alquilar'} mi propiedad.\n\n` +
-      `*DETALLES DE LA PROPIEDAD:*\n` +
+    const message = `*Honne Inmobiliaria - Nueva Solicitud*\n\n` +
+      `👤 *Nombre:* ${name}\n` +
+      `✉️ *Email:* ${email}\n` +
+      `🎯 *Intención:* ${data.intention}\n` +
       `🏠 *Tipo:* ${data.type}\n` +
       `📍 *Ubicación:* ${data.address || 'No especificada'}\n` +
       `📅 *Antigüedad:* ${data.year || 'No especificada'}\n` +
-      `💰 *Valor Est.:* ${formattedValue || 'No especificada'}\n` +
+      `💰 *Expectativa:* ${formattedValue || 'No especificada'}\n` +
       `⏰ *Urgencia:* ${data.timeline}\n` +
       `🔄 *Historial:* ${data.attempted}\n` +
       `🛒 *Busca comprar:* ${data.buying || 'N/A'}\n` +
-      `💼 *Trabaja con agente:* ${data.agent || 'N/A'}\n` +
-      `⚠️ *Preocupación:* ${data.concern}\n\n` +
-      `📧 *Email:* ${email}\n\n` +
-      `Me gustaría recibir mi ${data.intention === 'Vender' ? 'Hoja de Ruta de Venta' : 'Ruta de Alquiler Honne'} y agendar una breve llamada.`;
+      `🤝 *Trabaja con agente:* ${data.agent || 'N/A'}\n` +
+      `⚠️ *Preocupación:* ${data.concern || 'No especificada'}`;
     
     return `https://wa.me/51922142073?text=${encodeURIComponent(message)}`;
   };
