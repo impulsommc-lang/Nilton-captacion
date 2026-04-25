@@ -732,7 +732,8 @@ function ResultSection({ data }: { data: QuizData }) {
       `🔄 *Historial:* ${data.attempted}\n` +
       `🛒 *Busca comprar:* ${data.buying || 'N/A'}\n` +
       `🤝 *Trabaja con agente:* ${data.agent || 'N/A'}\n` +
-      `⚠️ *Preocupación:* ${data.concern || 'No especificada'}`;
+      `⚠️ *Preocupación:* ${data.concern || 'No especificada'}\n\n` +
+      `Me gustaría recibir mi Hoja de Ruta de Venta y agendar una breve llamada.`;
     
     return `https://wa.me/51922142073?text=${encodeURIComponent(message)}`;
   };
