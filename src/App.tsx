@@ -720,7 +720,7 @@ function ResultSection({ data }: { data: QuizData }) {
       ? `${data.currency === 'USD' ? '$' : 'S/'} ${data.value}`
       : data.value;
 
-    const message = `*Honne Inmobiliaria - Nueva Solicitud*\n\n` +
+    const message = `Hola Honne. Acabo de completar la solicitud para vender mi propiedad.\n\n` +
       `👤 *Nombre:* ${name}\n` +
       `✉️ *Email:* ${email}\n` +
       `🎯 *Intención:* ${data.intention}\n` +
