@@ -25,763 +25,1664 @@ import {
   Calendar,
   DollarSign,
   Check,
-  HelpCircle
+  HelpCircle,
+  Radio,
+  Users,
+  LineChart,
+  Cpu,
+  Sparkles,
+  Globe,
+  Video,
+  Target,
+  UserCheck,
+  Network,
+  Eye,
+  Activity,
+  Award,
+  Shield,
+  Send
 } from 'lucide-react';
 
 // --- Types ---
 
-type Intention = 'Vender' | 'Alquilar';
 type PropertyType = 'Departamento' | 'Casa' | 'Terreno' | 'Local Comercial';
-type District = 'Miraflores' | 'Surco' | 'San Isidro' | 'San Borja' | 'La Molina';
-type Timeline = 'lo antes posible' | '0-3 meses' | '4-6 meses' | '7-12 meses' | 'Más de 12 meses';
-type PreviousAttempt = 'Sí, por mi cuenta' | 'Sí, con otra agencia' | 'No, es la primera vez';
-type Concern = string;
-type HomeCondition = 'No necesita nada' | 'Necesita un poco de trabajo' | 'Necesita mucho trabajo' | 'Demoler';
-type HomeValue = '$300.000 o menos' | '$300.000 - $600.000' | '$600.000 - $900.000' | '$900.000 - $1,2 millones' | '$1,2 millones o más';
-type ConstructionYear = 'De estreno' | 'De 0 a 5 años' | 'De 6 a 10 años' | 'De 11 a 20 años' | 'De 20 a 50 años' | 'De 50 años a más';
-type YesNo = 'Sí' | 'No';
 
 interface QuizData {
-  intention: Intention | null;
+  intention: 'Vender' | 'Alquilar' | null;
   type: PropertyType | null;
-  address: string | null;
-  condition: HomeCondition | null;
-  value: HomeValue | string | null;
+  address: string;
+  district: string;
+  value: string;
   currency: 'USD' | 'PEN';
-  year: ConstructionYear | null;
-  buying: YesNo | null;
-  agent: YesNo | null;
-  district: string | null;
-  timeline: Timeline | null;
-  attempted: PreviousAttempt | null;
-  concern: Concern | null;
+  timeline: string | null;
+  attempted: string | null;
+  name: string;
+  phone: string;
+  email: string;
+  acceptTerms: boolean;
 }
 
-// --- Components ---
+// --- List of Lima High-End Districts ---
+const PREMIUM_DISTRICTS = [
+  'Miraflores',
+  'San Isidro',
+  'Santiago de Surco',
+  'San Borja',
+  'La Molina',
+  'Barranco',
+  'Lince',
+  'Magdalena del Mar',
+  'Jesús María',
+  'Pueblo Libre',
+  'San Miguel',
+  'Surquillo',
+  'Chorrillos',
+  'Otro distrito'
+];
 
 export default function App() {
-  const [step, setStep] = useState<'hero' | 'quiz' | 'processing' | 'result'>('hero');
-  const [quizStep, setQuizStep] = useState(1);
+  // Navigation stack state for perfect goBack behavior
+  const [historyStack, setHistoryStack] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState<string>('portada');
+
   const [quizData, setQuizData] = useState<QuizData>({
     intention: null,
     type: null,
-    address: null,
-    condition: null,
-    value: null,
+    address: '',
+    district: '',
+    value: '',
     currency: 'USD',
-    year: null,
-    buying: null,
-    agent: null,
-    district: null,
     timeline: null,
     attempted: null,
-    concern: null,
+    name: '',
+    phone: '',
+    email: '',
+    acceptTerms: true
   });
+
   const [otherDistrict, setOtherDistrict] = useState('');
-  const [addressInput, setAddressInput] = useState('');
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
-  
-  const totalSteps = 11;
-  const progress = (quizStep / totalSteps) * 100;
+  const [redirectProgress, setRedirectProgress] = useState(0);
 
-  const quizRef = useRef<HTMLDivElement>(null);
-
-  const startQuiz = () => {
-    setStep('quiz');
-    setQuizStep(1);
-  };
-
-  const nextStep = () => {
-    if (quizStep < totalSteps) {
-      setQuizStep(quizStep + 1);
-    } else {
-      setStep('processing');
+  // Dynamic status/progress calculations
+  const totalQuizSteps = 6;
+  const getQuizStepNumber = () => {
+    switch (currentStep) {
+      case 'quiz_step_1': return 1;
+      case 'quiz_step_2': return 2;
+      case 'quiz_step_3': return 3;
+      case 'quiz_step_4': return 4;
+      case 'quiz_step_5': return 5;
+      case 'quiz_step_6': return 6;
+      case 'contacto': return 6; // Last form step
+      default: return 0;
     }
   };
 
-  const prevStep = () => {
-    if (quizStep > 1) {
-      setQuizStep(quizStep - 1);
+  const getStepProgressPercentage = () => {
+    const totalPresentationSteps = 5;
+    const currentQuizNum = getQuizStepNumber();
+    
+    // Presentation phase
+    if (currentStep === 'portada') return 5;
+    if (currentStep === 'propuesta_valor') return 15;
+    if (currentStep === 'alcance_digital') return 25;
+    if (currentStep === 'fuerza_comercial') return 35;
+    if (currentStep === 'analisis_mercado') return 45;
+
+    // Quiz phase
+    if (currentStep.startsWith('quiz_step_')) {
+      return 45 + (currentQuizNum / totalQuizSteps) * 45;
+    }
+    if (currentStep === 'contacto') return 92;
+    if (currentStep === 'processing' || currentStep === 'confirmacion') return 100;
+    return 100;
+  };
+
+  // Safe navigation function
+  const goTo = (nextStep: string) => {
+    setHistoryStack(prev => [...prev, currentStep]);
+    setCurrentStep(nextStep);
+    
+    // Quick auto scroll to top of component
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goBack = () => {
+    if (historyStack.length > 0) {
+      const prev = historyStack[historyStack.length - 1];
+      setHistoryStack(prevStack => prevStack.slice(0, -1));
+      setCurrentStep(prev);
     } else {
-      setStep('hero');
+      setCurrentStep('portada');
     }
   };
 
+  // Safe triggers on crucial properties to synchronize prices
+  const handleIntentionChange = (intention: 'Vender' | 'Alquilar') => {
+    let defaultValue = '200000';
+    if (intention === 'Alquilar') {
+      defaultValue = quizData.currency === 'USD' ? '2000' : '7000';
+    } else {
+      defaultValue = quizData.currency === 'USD' ? '200000' : '700000';
+    }
+    setQuizData(prev => ({
+      ...prev,
+      intention,
+      value: defaultValue
+    }));
+  };
+
+  const handleCurrencyChange = (currency: 'USD' | 'PEN') => {
+    let defaultValue = '200000';
+    if (quizData.intention === 'Alquilar') {
+      defaultValue = currency === 'USD' ? '2000' : '7000';
+    } else {
+      defaultValue = currency === 'USD' ? '200000' : '700000';
+    }
+    setQuizData(prev => ({
+      ...prev,
+      currency,
+      value: defaultValue
+    }));
+  };
+
+  // Trigger loading screen with real-time feedback and direct auto-redirection to WhatsApp
   useEffect(() => {
-    if (step === 'processing') {
+    if (currentStep === 'processing') {
+      setRedirectProgress(0);
+      const interval = setInterval(() => {
+        setRedirectProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          // Dynamic increment to feel realistic and interactive
+          const increment = Math.floor(Math.random() * 8) + 4;
+          return Math.min(prev + increment, 100);
+        });
+      }, 120);
+      return () => clearInterval(interval);
+    }
+  }, [currentStep]);
+
+  // Handle auto-redirection immediately upon reaching 100%
+  useEffect(() => {
+    if (currentStep === 'processing' && redirectProgress === 100) {
       const timer = setTimeout(() => {
-        setStep('result');
-      }, 3000);
+        window.location.href = getWhatsAppLink();
+      }, 400);
       return () => clearTimeout(timer);
     }
-  }, [step]);
+  }, [redirectProgress, currentStep]);
 
-  return (
-    <div className="min-h-screen lg:min-h-0 bg-white font-sans text-brand-black selection:bg-brand-gold overflow-hidden">
-      <div className="app-shell-grid lg:h-screen">
-        
-        {/* Hero Side (Sidebar) - Hidden on Mobile */}
-        <aside className="hero-side hidden lg:flex bg-black text-white relative flex-col justify-between p-16 border-r border-gray-medium overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <img 
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
-              className="w-full h-full object-cover opacity-40" 
-              alt="Luxury property" 
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 hero-image-overlay"></div>
-          </div>
-          
-          <div className="relative z-10 flex flex-col h-full">
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex flex-col mb-32"
-            >
-              <span className="text-xl font-extrabold tracking-[0.4em] uppercase brand-logo-border pl-4">HONNE</span>
-            </motion.div>
-            <div className="flex-1 flex flex-col justify-center">
-              <motion.h1 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-6 tracking-tight"
-              >
-                Vende o Alquila tu propiedad con el respaldo de Honne
-              </motion.h1>
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.7 }}
-                transition={{ delay: 0.5 }}
-                className="text-sm sm:text-base leading-relaxed text-white font-light max-w-[300px]"
-              >
-                👉 Descubre la mejor estrategia de comercialización inmobiliaria para cerrar al mejor precio y sin perder tiempo.
-              </motion.p>
-            </div>
-            <div className="mt-auto">
-              <span className="text-[11px] uppercase tracking-[0.2em] opacity-60">Especialistas en Captación</span>
-            </div>
-          </div>
-        </aside>
+  // Formatted price representation for high aesthetic consistency
+  const formattedPrice = () => {
+    if (!quizData.value) return '';
+    const num = Number(quizData.value);
+    if (isNaN(num)) return quizData.value;
+    return num.toLocaleString('es-PE');
+  };
 
-        {/* Content Side */}
-        <main className="quiz-side flex flex-col bg-white relative h-screen max-h-[100dvh] overflow-hidden">
-          {/* Progress Bar */}
-          <div className="progress-container h-1 w-full bg-gray-light absolute top-0 left-0 z-30">
-            <motion.div 
-              className="progress-bar h-full bg-brand-gold origin-left"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: step === 'quiz' ? progress / 100 : step === 'processing' || step === 'result' ? 1 : 0 }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
+  // Dynamic slider range params
+  const getSliderParams = () => {
+    const isVender = quizData.intention === 'Vender';
+    const isUSD = quizData.currency === 'USD';
+    
+    if (isVender) {
+      if (isUSD) {
+        return { min: 40000, max: 1500000, step: 10000 };
+      } else {
+        return { min: 100000, max: 5000000, step: 20000 };
+      }
+    } else {
+      if (isUSD) {
+        return { min: 200, max: 10000, step: 100 };
+      } else {
+        return { min: 600, max: 35000, step: 200 };
+      }
+    }
+  };
 
-          <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar pt-1">
-            <AnimatePresence mode="wait">
-              {step === 'hero' && (
-                <motion.div 
-                  key="hero"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="flex-1 flex flex-col items-center justify-center p-6 md:p-12 text-center"
-                >
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="lg:hidden mb-8"
-                  >
-                     <span className="text-xl font-extrabold tracking-[0.4em] uppercase brand-logo-border pl-4">HONNE</span>
-                  </motion.div>
-                  <motion.h1 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="lg:hidden text-4xl md:text-6xl font-bold mb-6 tracking-tighter max-w-2xl mx-auto leading-tight"
-                  >
-                    Vende o Alquila tu propiedad con <span className="text-brand-gold italic">Honne</span>
-                  </motion.h1>
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="lg:hidden text-gray-500 mb-10 max-w-lg mx-auto text-sm md:text-base px-4"
-                  >
-                    👉 Descubre la estrategia de comercialización de Honne Inmobiliaria para vender o alquilar al mejor precio.
-                  </motion.p>
-                  
-                  <button 
-                    onClick={startQuiz}
-                    className="btn-geometric-primary group w-full sm:w-auto"
-                  >
-                    Iniciar diagnóstico gratuito
-                    <ArrowRight size={16} className="inline ml-3 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                  <div className="ornament-text hidden sm:block">00</div>
-                </motion.div>
-              )}
+  const sliderParams = getSliderParams();
+  const sliderPercentage = (() => {
+    const val = Number(quizData.value) || sliderParams.min;
+    const pct = ((val - sliderParams.min) / (sliderParams.max - sliderParams.min)) * 100;
+    return Math.min(Math.max(pct, 0), 100);
+  })();
 
-              {step === 'quiz' && (
-                <motion.div 
-                  key="quiz"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 md:p-20 text-center"
-                >
-                  <div className="w-full max-w-3xl">
-                    <div className="flex justify-between items-center mb-8 px-4">
-                      <button 
-                        onClick={prevStep}
-                        className="p-2 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black"
-                      >
-                        <ArrowLeft size={20} />
-                      </button>
-                      <span className="step-indicator text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 font-sans">
-                        Paso {String(quizStep).padStart(2, '0')} / {String(totalSteps).padStart(2, '0')}
-                      </span>
-                      <div className="w-10"></div>
-                    </div>
-                    
-                    <div className="w-full flex flex-col items-center">
-                      <AnimatePresence mode="wait">
-                        {quizStep === 1 && (
-                          <motion.div 
-                            key="step1" 
-                            initial={{ opacity: 0, x: 20 }} 
-                            animate={{ opacity: 1, x: 0 }} 
-                            exit={{ opacity: 0, x: -20 }} 
-                            className="w-full"
-                          >
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">¿Cuál es tu intención principal?</h2>
-                            <p className="text-gray-400 mb-12 max-w-sm mx-auto text-xs sm:text-sm">Personalizaremos tu Ruta Honne según tu objetivo.</p>
-                            <div className="grid grid-cols-2 gap-4 w-full max-w-[500px] mx-auto">
-                              {(['Vender', 'Alquilar'] as ('Vender' | 'Alquilar')[]).map((opt) => (
-                                <button 
-                                  key={opt}
-                                  onClick={() => { setQuizData({ ...quizData, intention: opt as Intention }); nextStep(); }} 
-                                  className="option-card !py-12 flex flex-col items-center gap-4"
-                                >
-                                  <span className="option-label text-sm sm:text-lg font-bold uppercase tracking-[0.2em]">{opt === 'Vender' ? 'Quiero Vender' : 'Quiero Alquilar'}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 2 && (
-                          <motion.div 
-                            key="step2" 
-                            initial={{ opacity: 0, x: 20 }} 
-                            animate={{ opacity: 1, x: 0 }} 
-                            exit={{ opacity: 0, x: -20 }} 
-                            className="w-full"
-                          >
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">¿Qué tipo de propiedad deseas {quizData.intention === 'Vender' ? 'vender' : 'alquilar'}?</h2>
-                            <p className="text-gray-400 mb-12 max-w-sm mx-auto text-xs sm:text-sm">Selecciona la categoría que mejor describa tu inmueble.</p>
-                            <div className="grid grid-cols-2 gap-3 sm:gap-5 w-full max-w-[540px] mx-auto">
-                              {(['Departamento', 'Casa', 'Terreno', 'Local Comercial'] as PropertyType[]).map((type, i) => {
-                                const icons = { 'Departamento': Building2, 'Casa': Home, 'Terreno': MapIcon, 'Local Comercial': Store };
-                                const Icon = icons[type];
-                                return (
-                                  <motion.button 
-                                    key={type} 
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    onClick={() => { setQuizData({ ...quizData, type }); nextStep(); }} 
-                                    className={`option-card flex flex-col items-center justify-center gap-3 p-4 sm:p-8 h-full ${quizData.type === type ? 'selected ring-2 ring-brand-gold' : ''}`}
-                                  >
-                                    <div className="option-icon-wrapper !w-10 !h-10 sm:!w-12 sm:!h-12">
-                                      <Icon size={20} className="sm:size-24" />
-                                    </div>
-                                    <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-wider">{type}</span>
-                                  </motion.button>
-                                );
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 3 && (
-                          <motion.div 
-                            key="step3" 
-                            initial={{ opacity: 0, x: 20 }} 
-                            animate={{ opacity: 1, x: 0 }} 
-                            exit={{ opacity: 0, x: -20 }} 
-                            className="w-full max-w-[540px] mx-auto text-left"
-                          >
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 text-center">¿Cuál es la dirección de la propiedad?</h2>
-                            <p className="text-gray-400 mb-12 text-center text-xs sm:text-sm">Ingresa la ubicación exacta para un análisis geográfico preciso.</p>
-                            
-                            <div className="relative mb-8">
-                              <label className="text-[9px] uppercase tracking-widest font-bold opacity-40 mb-2 block pl-1">Dirección del inmueble</label>
-                              <div className="bg-white border-2 border-brand-gold/10 focus-within:border-brand-gold rounded-sm flex items-center p-4 gap-4 shadow-sm transition-all group">
-                                <Search size={20} className="text-gray-300 group-focus-within:text-brand-gold transition-colors" />
-                                <input 
-                                  type="text"
-                                  value={addressInput}
-                                  onChange={(e) => {
-                                    setAddressInput(e.target.value);
-                                    setShowAddressSuggestions(e.target.value.length > 2);
-                                  }}
-                                  onFocus={() => addressInput.length > 2 && setShowAddressSuggestions(true)}
-                                  placeholder="Ej. Av. Larco 123, Miraflores..."
-                                  className="flex-1 focus:outline-none text-brand-black bg-transparent text-sm sm:text-base font-medium"
-                                />
-                              </div>
-
-                              <AnimatePresence>
-                                {showAddressSuggestions && (
-                                  <motion.div 
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="absolute top-full left-0 right-0 bg-white border border-gray-medium shadow-2xl z-50 mt-2 overflow-hidden rounded-sm"
-                                  >
-                                    {[
-                                      "Av. Larco 123, Miraflores, Lima",
-                                      "Ca. Los Olivos 456, San Isidro, Lima",
-                                      "Jr. Batalla de Junín 789, Surco, Lima",
-                                      "Av. Paseo de la República 1011, San Borja, Lima"
-                                    ].filter(a => a.toLowerCase().includes(addressInput.toLowerCase())).map((item) => (
-                                      <button 
-                                        key={item}
-                                        onClick={() => {
-                                          setAddressInput(item);
-                                          setQuizData({ ...quizData, address: item });
-                                          setShowAddressSuggestions(false);
-                                        }}
-                                        className="w-full p-4 flex items-center gap-4 hover:bg-gray-light transition-colors text-left border-b border-gray-50 last:border-0"
-                                      >
-                                        <MapPin size={16} className="text-brand-gold shrink-0" />
-                                        <span className="text-xs sm:text-sm font-medium">{item}</span>
-                                      </button>
-                                    ))}
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-
-                            <button 
-                              disabled={!addressInput}
-                              onClick={() => {
-                                if (quizData.address !== addressInput) {
-                                  setQuizData({ ...quizData, address: addressInput });
-                                }
-                                nextStep();
-                              }}
-                              className="btn-geometric-primary !w-full !py-6 flex items-center justify-center gap-4 disabled:opacity-30 text-xs sm:text-sm font-bold uppercase tracking-widest"
-                            >
-                              Continuar <ArrowRight size={18} />
-                            </button>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 4 && (
-                          <motion.div key="step4" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-10">¿Cuál es la antigüedad de tu propiedad?</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
-                              {[
-                                'De estreno', 'De 0 a 5 años', 'De 6 a 10 años', 
-                                'De 11 a 20 años', 'De 20 a 50 años', 'De 50 años a más'
-                              ].map((item, i) => (
-                                <motion.button 
-                                  key={item}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: i * 0.05 }}
-                                  onClick={() => { 
-                                    setQuizData({ ...quizData, year: item as ConstructionYear }); 
-                                    nextStep(); 
-                                  }} 
-                                  className="option-card flex items-center justify-between !py-3 sm:!py-5 !px-4 sm:!px-8"
-                                >
-                                  <span className="option-label text-[9px] sm:text-xs font-bold uppercase tracking-widest">{item}</span>
-                                  <Calendar size={12} className="text-brand-gold opacity-50 shrink-0" />
-                                </motion.button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 5 && (
-                          <motion.div key="step5" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-4">Expectativa económica</h2>
-                            <p className="text-gray-400 mb-6 sm:mb-8 text-[10px] sm:text-sm">¿Cuánto esperas obtener por la {quizData.intention === 'Vender' ? 'venta' : 'renta'}?</p>
-                            
-                            <div className="space-y-4 sm:space-y-6">
-                              {/* Currency Selector */}
-                              <div className="flex justify-center mb-4 sm:mb-6">
-                                <div className="flex bg-gray-light p-1 rounded-sm border border-gray-medium">
-                                  <button 
-                                    onClick={() => setQuizData({ ...quizData, currency: 'USD' })}
-                                    className={`px-4 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${quizData.currency === 'USD' ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-gray-400 hover:text-brand-black'}`}
-                                  >
-                                    Dólares ($)
-                                  </button>
-                                  <button 
-                                    onClick={() => setQuizData({ ...quizData, currency: 'PEN' })}
-                                    className={`px-4 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all ${quizData.currency === 'PEN' ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-gray-400 hover:text-brand-black'}`}
-                                  >
-                                    Soles (S/)
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-brand-gold">
-                                  {quizData.currency === 'USD' ? '$' : 'S/'}
-                                </span>
-                                <input 
-                                  type="number"
-                                  placeholder="Ingresa un monto"
-                                  className="w-full bg-gray-light border-2 border-transparent focus:border-brand-gold p-3 sm:p-4 pl-10 sm:pl-12 rounded-sm text-sm font-bold focus:outline-none transition-all"
-                                  value={typeof quizData.value === 'string' && !quizData.value.includes('$') && !quizData.value.includes('S/') ? quizData.value : ''}
-                                  onChange={(e) => setQuizData({ ...quizData, value: e.target.value })}
-                                />
-                              </div>
-
-                              {quizData.value && typeof quizData.value === 'string' && quizData.value.length > 0 && !quizData.value.includes('$') && !quizData.value.includes('S/') && (
-                                <button 
-                                  onClick={nextStep}
-                                  className="btn-geometric-primary !w-full !py-3 sm:!py-4"
-                                >
-                                  Confirmar Monto
-                                </button>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 6 && (
-                          <motion.div key="step6" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-10">¿Cuándo te gustaría {quizData.intention === 'Vender' ? 'vender' : 'alquilar'}?</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 sm:gap-3">
-                              {[
-                                'lo antes posible', '0-3 meses', 
-                                '4-6 meses', '7-12 meses', 'Más de 12 meses'
-                              ].map((item, i) => (
-                                <motion.button 
-                                  key={item} 
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: i * 0.05 }}
-                                  onClick={() => { setQuizData({ ...quizData, timeline: item as Timeline }); nextStep(); }} 
-                                  className="option-card !py-4 sm:!py-6 font-bold"
-                                >
-                                  <span className="option-label text-[10px] sm:text-xs uppercase tracking-widest">{item}</span>
-                                </motion.button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 7 && (
-                          <motion.div key="step7" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 px-4 text-balance">¿También estás buscando comprar una propiedad?</h2>
-                            <p className="text-gray-400 mb-12 text-[10px] sm:text-xs">Ofrecemos estrategias para transacciones simultáneas.</p>
-                            <div className="grid grid-cols-2 gap-4">
-                              {['No', 'Sí'].map((item) => (
-                                <button 
-                                  key={item} 
-                                  onClick={() => { setQuizData({ ...quizData, buying: item as YesNo }); nextStep(); }} 
-                                  className="option-card !py-10 sm:!py-12"
-                                >
-                                  <span className="option-label text-sm sm:text-base font-bold uppercase tracking-[0.2em]">{item}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 8 && (
-                          <motion.div key="step8" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-12">¿Trabajas actualmente con un agente?</h2>
-                            <div className="grid grid-cols-2 gap-4">
-                              {['No', 'Sí'].map((item) => (
-                                <button 
-                                  key={item} 
-                                  onClick={() => { setQuizData({ ...quizData, agent: item as YesNo }); nextStep(); }} 
-                                  className="option-card !py-10 sm:!py-12"
-                                >
-                                  <span className="option-label text-sm sm:text-base font-bold uppercase tracking-[0.2em]">{item}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 9 && (
-                          <motion.div key="step9" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-10">¿Has intentado {quizData.intention === 'Vender' ? 'venderla' : 'alquilarla'} antes?</h2>
-                            <div className="grid gap-3">
-                              {(['Sí, por mi cuenta', 'Sí, con otra agencia', 'No, es la primera vez'] as PreviousAttempt[]).map((a, i) => (
-                                <motion.button 
-                                  key={a} 
-                                  initial={{ opacity: 0, x: 20 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: i * 0.1 }}
-                                  onClick={() => { setQuizData({ ...quizData, attempted: a }); nextStep(); }} 
-                                  className="option-card !py-6 sm:!py-7"
-                                >
-                                  <span className="option-label text-[10px] sm:text-xs font-bold uppercase tracking-widest">{a}</span>
-                                </motion.button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 10 && (
-                          <motion.div key="step10" className="w-full max-w-[500px] mx-auto">
-                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4 tracking-tight">¿Cuál es tu mayor preocupación?</h2>
-                            <p className="text-gray-400 mb-6 sm:mb-12 text-[10px] sm:text-xs">Entender tus prioridades nos ayuda a diseñar el mejor plan.</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-1 gap-2 sm:gap-3">
-                              {[
-                                { label: 'Malbaratar mi patrimonio', icon: Lock },
-                                { label: 'Tiempo perdido con curiosos', icon: User },
-                                { label: 'Problemas legales/seguridad', icon: ShieldCheck }
-                              ].map((item, i) => (
-                                <motion.button 
-                                  key={item.label}
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: i * 0.1 }}
-                                  onClick={() => { setQuizData({ ...quizData, concern: item.label }); nextStep(); }} 
-                                  className={`option-card flex items-center justify-between !py-4 sm:!py-7 !px-6 sm:!px-10 ${quizData.concern === item.label ? 'border-brand-gold bg-brand-gold/5' : ''}`}
-                                >
-                                  <span className="option-label text-[9px] sm:text-xs font-bold uppercase tracking-widest text-left pr-4">{item.label}</span>
-                                  <item.icon size={16} className="text-brand-gold shrink-0" />
-                                </motion.button>
-                              ))}
-                            </div>
-
-                            <div className="mt-6 sm:mt-10 space-y-3 sm:space-y-4">
-                              <div className="flex items-center gap-2">
-                                <div className="h-[1px] bg-gray-medium flex-1" />
-                                <span className="text-[9px] font-bold uppercase opacity-30 tracking-[0.2em]">O escribe tu preocupación</span>
-                                <div className="h-[1px] bg-gray-medium flex-1" />
-                              </div>
-                              <div className="relative">
-                                <textarea 
-                                  placeholder="Escribe aquí tu mayor preocupación..."
-                                  value={!['Malbaratar mi patrimonio', 'Tiempo perdido con curiosos', 'Problemas legales/seguridad'].includes(quizData.concern || '') ? quizData.concern || '' : ''}
-                                  onChange={(e) => setQuizData({ ...quizData, concern: e.target.value })}
-                                  className="w-full bg-gray-light border-2 border-transparent focus:border-brand-gold p-4 sm:p-5 rounded-sm text-sm font-bold focus:outline-none transition-all min-h-[80px] sm:min-h-[100px] resize-none"
-                                />
-                              </div>
-                              {quizData.concern && quizData.concern.length > 0 && !['Malbaratar mi patrimonio', 'Tiempo perdido con curiosos', 'Problemas legales/seguridad'].includes(quizData.concern) && (
-                                <motion.button 
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  onClick={nextStep}
-                                  className="btn-geometric-primary !w-full !py-4 sm:!py-5 flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-[0.2em]"
-                                >
-                                  Continuar <ArrowRight size={16} />
-                                </motion.button>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {quizStep === 11 && (
-                          <motion.div key="step11" className="w-full max-w-[440px] mx-auto">
-                            <div className="flex flex-col items-center text-center mb-10 sm:mb-16">
-                              <div className="w-16 h-16 sm:w-24 sm:h-24 bg-brand-gold rounded-full flex items-center justify-center mb-6 sm:mb-8 shadow-2xl shadow-brand-gold/30">
-                                <ShieldCheck size={32} className="text-brand-black sm:size-12" />
-                                </div>
-                              <h2 className="text-xl sm:text-4xl font-bold mb-4 sm:mb-6 tracking-tighter italic uppercase underline decoration-brand-gold/30">Análisis Completo</h2>
-                              <p className="text-gray-500 font-medium leading-relaxed text-[10px] sm:text-sm px-4">
-                                Hemos recopilado toda la información necesaria para preparar tu <span className="text-brand-black font-extrabold underline decoration-brand-gold decoration-2">Ruta de {quizData.intention === 'Vender' ? 'Venta' : 'Alquiler'} Honne Personalizada</span>.
-                              </p>
-                            </div>
-                            <button 
-                              onClick={nextStep}
-                              className="w-full btn-geometric-primary !py-5 sm:!py-7 flex items-center justify-center gap-6 text-[10px] sm:text-xs font-extrabold uppercase tracking-[0.4em] shadow-2xl"
-                            >
-                              Finalizar Evaluación <ArrowRight size={20} />
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                  <div className="ornament-text hidden sm:block">{String(quizStep).padStart(2, '0')}</div>
-                </motion.div>
-              )}
-
-              {step === 'processing' && (
-                <ProcessingSection district={quizData.district || quizData.address} />
-              )}
-
-              {step === 'result' && (
-                <motion.div 
-                  key="result"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex-1 overflow-y-auto"
-                >
-                  <ResultSection data={quizData} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          
-          <footer className="p-6 border-t border-gray-medium bg-white z-20 flex justify-between items-center shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">© 2020 Honne Inmobiliaria</span>
-            <div className="flex gap-4 opacity-30">
-              <Phone size={14} />
-              <Mail size={14} />
-            </div>
-          </footer>
-        </main>
-      </div>
-    </div>
-  );
-}
-
-// --- Specialized Internal Components ---
-
-function ProcessingSection({ district }: { district: string | null }) {
-  return (
-    <motion.section 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-full flex flex-col items-center justify-center p-6 text-center"
-    >
-      <div className="relative mb-12">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="w-24 h-24 border-2 border-gray-100 border-t-brand-gold rounded-full"
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 size={32} className="animate-pulse text-brand-black" />
-        </div>
-      </div>
-      
-      <motion.h2 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-2xl font-bold mb-4"
-      >
-        Generando tu Ruta de Venta Honne personalizada...
-      </motion.h2>
-      
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="max-w-md p-6 bg-gray-50 border border-gray-100 rounded-2xl flex gap-4 items-start text-left mx-auto"
-      >
-        <div className="bg-brand-gold p-2 rounded-full shrink-0">
-          <CheckCircle2 size={16} />
-        </div>
-        <p className="text-sm text-gray-500 italic">
-          "Sabías que en Honne filtramos al 100% de los interesados antes de llevarlos a tu propiedad."
-        </p>
-      </motion.div>
-    </motion.section>
-  );
-}
-
-function ResultSection({ data }: { data: QuizData }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-
+  // Main WhatsApp link compiler using real Unicode emojis
   const getWhatsAppLink = () => {
-    const formattedValue = typeof data.value === 'string' && !data.value.includes('$') && !data.value.includes('S/') 
-      ? `${data.currency === 'USD' ? '$' : 'S/'} ${data.value}`
-      : data.value;
+    const formattedValue = quizData.value
+      ? `${quizData.currency === 'USD' ? 'US$' : 'S/'} ${Number(quizData.value).toLocaleString('es-PE')}`
+      : 'No especificada';
 
-    const message = `Hola Honne. Acabo de completar la solicitud para vender mi propiedad.\n\n` +
-      `👤 *Nombre:* ${name}\n` +
-      `✉️ *Email:* ${email}\n` +
-      `🎯 *Intención:* ${data.intention}\n` +
-      `🏠 *Tipo:* ${data.type}\n` +
-      `📍 *Ubicación:* ${data.address || 'No especificada'}\n` +
-      `📅 *Antigüedad:* ${data.year || 'No especificada'}\n` +
-      `💰 *Expectativa:* ${formattedValue || 'No especificada'}\n` +
-      `⏰ *Urgencia:* ${data.timeline}\n` +
-      `🔄 *Historial:* ${data.attempted}\n` +
-      `🛒 *Busca comprar:* ${data.buying || 'N/A'}\n` +
-      `🤝 *Trabaja con agente:* ${data.agent || 'N/A'}\n` +
-      `⚠️ *Preocupación:* ${data.concern || 'No especificada'}\n\n` +
+    const message = `Hola Honne. Acabo de completar la solicitud.\n\n` +
+      `👤 *Nombre:* ${quizData.name}\n` +
+      `📞 *WhatsApp / Teléfono:* ${quizData.phone}\n` +
+      `✉️ *Email:* ${quizData.email || 'No especificado'}\n` +
+      `🎯 *Intención:* ${quizData.intention || 'Vender'}\n` +
+      `🏠 *Tipo:* ${quizData.type || 'Departamento'}\n` +
+      `📍 *Ubicación:* ${quizData.address || 'No especificada'}\n` +
+      `📅 *Antigüedad:* De estreno\n` +
+      `💰 *Expectativa:* ${formattedValue}\n` +
+      `⏰ *Urgencia:* ${quizData.timeline || 'lo antes posible'}\n` +
+      `🔄 *Historial:* ${quizData.attempted || 'No, es la primera vez'}\n` +
+      `🛒 *Busca comprar:* No\n` +
+      `🤝 *Trabaja con agente:* No\n` +
+      `⚠️ *Preocupación:* que me estafen\n\n` +
       `Me gustaría recibir mi Ruta de Venta Honne y agendar una breve llamada.`;
     
     return `https://wa.me/51922142073?text=${encodeURIComponent(message)}`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    window.open(getWhatsAppLink(), '_blank');
-  };
-
   return (
-    <div className="flex flex-col min-h-full">
-      <div className="p-6 sm:p-16 lg:p-20 flex flex-col items-center text-center border-b border-gray-medium">
-        <div className="flex items-center gap-2 mb-4 sm:mb-6 text-brand-gold">
-          <Lock size={12} />
-          <span className="text-[9px] uppercase font-bold tracking-widest text-brand-black/40">Acceso Restringido • Privacidad Total</span>
-        </div>
-        <h2 className="text-2xl sm:text-5xl font-bold tracking-tighter mb-4 sm:mb-6 leading-tight">Tu Ruta de Venta Honne está <span className="italic underline underline-offset-4 decoration-brand-gold decoration-4">lista</span>.</h2>
-        <p className="text-xs sm:text-base text-gray-500 max-w-md font-light leading-relaxed">
-          Ingresa tus datos finales para <span className="text-brand-black font-bold">abrir WhatsApp</span> y enviar tu solicitud automáticamente.
-        </p>
-      </div>
-
-      <div className="p-6 sm:p-16 lg:p-20 bg-gray-light">
-        <form onSubmit={handleSubmit} className="w-full max-w-sm mx-auto space-y-6 sm:space-y-8">
-          <div className="grid gap-5">
-            <div className="space-y-2 text-left">
-              <label className="text-[9px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
-                <User size={10} /> Nombre Completo
-              </label>
-              <input 
-                required
-                type="text" 
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Nombre..."
-                className="w-full bg-white border border-gray-medium px-5 py-3.5 text-sm focus:outline-none focus:border-brand-black transition-all"
-              />
-            </div>
-            
-            <div className="space-y-2 text-left">
-              <label className="text-[9px] uppercase tracking-widest font-bold opacity-40 flex items-center gap-2">
-                <Mail size={10} /> Correo electrónico
-              </label>
-              <div className="relative">
-                <input 
-                  required
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ejemplo@correo.com"
-                  className="w-full bg-white border border-gray-medium px-5 py-3.5 text-sm focus:outline-none focus:border-brand-black transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <button 
-              type="submit"
-              className="w-full btn-geometric-primary !py-5 flex items-center justify-center gap-3 active:scale-95 transition-transform"
-            >
-              <span className="relative z-10">Solicitar a WhatsApp</span>
-              <ArrowRight size={16} className="relative z-10" />
-            </button>
-            <p className="text-[10px] text-gray-400 text-center italic">
-              * Al hacer clic, se abrirá WhatsApp con tu mensaje listo para enviar.
-            </p>
+    <div className="min-h-screen bg-white font-sans text-brand-black selection:bg-brand-gold overflow-hidden">
+      <div className="app-shell-grid lg:h-screen">
+        
+        {/* --- DESKTOP SIDEBAR (Visual presentation & dynamically updated Diagnostic state) --- */}
+        <aside className="hero-side hidden lg:flex bg-black text-white relative flex-col justify-between p-12 border-r border-gray-medium overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" 
+              className="w-full h-full object-cover opacity-20" 
+              alt="Premium Real Estate" 
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/90 to-black"></div>
           </div>
           
-          <p className="text-[9px] text-center text-gray-400 leading-relaxed max-w-[240px] mx-auto uppercase tracking-wider font-bold opacity-40 pt-4">
-            Seguridad y confidencialidad garantizada por Honne Inmobiliaria.
-          </p>
-        </form>
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            {/* Logo */}
+            <div className="flex flex-col">
+              <span className="text-xl font-extrabold tracking-[0.4em] uppercase brand-logo-border pl-4 border-l-4 border-brand-gold text-brand-gold">HONNE</span>
+              <span className="text-[9px] text-zinc-400 uppercase tracking-widest pl-4 mt-1 font-mono">Inmobiliaria de elite</span>
+            </div>
+
+            {/* Dynamic visual preview of current captured data - keeps the tool alive & highly responsive */}
+            <div className="my-auto py-10">
+              {quizData.intention || quizData.type || quizData.address ? (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-4"
+                >
+                  {/* Interactive compatibility meter card */}
+                  <div className="bg-gradient-to-br from-zinc-900 via-black to-zinc-900 border border-zinc-800 p-5 rounded-lg text-left shadow-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[9px] uppercase tracking-wider text-brand-gold font-bold">ÍNDICE DE VIABILIDAD COMERCIAL</span>
+                      <span className="text-xs font-black text-brand-gold font-mono">
+                        {(() => {
+                          let score = 25;
+                          if (quizData.intention) score += 15;
+                          if (quizData.type) score += 15;
+                          if (quizData.district || quizData.address) score += 15;
+                          if (quizData.value && Number(quizData.value) > 0) score += 15;
+                          if (quizData.timeline) score += 15;
+                          return Math.min(score, 100);
+                        })()}%
+                      </span>
+                    </div>
+
+                    {/* Progress tracking line */}
+                    <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden mb-3.5">
+                      <motion.div 
+                        className="h-full bg-gradient-to-r from-brand-gold to-yellow-400 origin-left"
+                        animate={{ 
+                          width: `${(() => {
+                            let score = 25;
+                            if (quizData.intention) score += 15;
+                            if (quizData.type) score += 15;
+                            if (quizData.district || quizData.address) score += 15;
+                            if (quizData.value && Number(quizData.value) > 0) score += 15;
+                            if (quizData.timeline) score += 15;
+                            return Math.min(score, 100);
+                          })()}%` 
+                        }}
+                        transition={{ type: 'spring', stiffness: 80 }}
+                      />
+                    </div>
+
+                    <p className="text-[10px] text-zinc-400 font-semibold italic">
+                      {(() => {
+                        let score = 25;
+                        if (quizData.intention) score += 15;
+                        if (quizData.type) score += 15;
+                        if (quizData.district || quizData.address) score += 15;
+                        if (quizData.value && Number(quizData.value) > 0) score += 15;
+                        if (quizData.timeline) score += 15;
+                        
+                        if (score < 50) return "🚀 Iniciando diagnóstico comercial...";
+                        if (score < 80) return "📊 Generando curva de equilibrio de precio...";
+                        return "✨ ¡Diagnóstico Express Optimizado para WhatsApp!";
+                      })()}
+                    </p>
+                  </div>
+
+                  <div className="bg-zinc-900/80 border border-zinc-800 p-5 rounded-lg backdrop-blur">
+                    <p className="text-[9px] uppercase text-zinc-400 tracking-widest font-black mb-3.5 border-b border-zinc-800/60 pb-1.5">RESUMEN DE SOLICITUD</p>
+                    <div className="space-y-3 font-mono text-xs">
+                      {quizData.intention && (
+                        <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
+                          <span>🎯 Objetivo:</span>
+                          <span className="text-white font-bold">{quizData.intention === 'Vender' ? 'Venta de propiedad' : 'Alquiler'}</span>
+                        </div>
+                      )}
+                      {quizData.type && (
+                        <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
+                          <span>🏠 Tipo:</span>
+                          <span className="text-white font-bold">{quizData.type}</span>
+                        </div>
+                      )}
+                      {quizData.address && (
+                        <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
+                          <span>📍 Ubicación:</span>
+                          <span className="text-white font-bold max-w-[140px] truncate">{quizData.address}</span>
+                        </div>
+                      )}
+                      {quizData.district && (
+                        <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
+                          <span>🏷️ Distrito:</span>
+                          <span className="text-white font-bold">{quizData.district}</span>
+                        </div>
+                      )}
+                      {quizData.value && (
+                        <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
+                          <span>💰 Expectativa:</span>
+                          <span className="text-brand-gold font-bold font-sans">
+                            {quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(quizData.value).toLocaleString('es-PE')}
+                          </span>
+                        </div>
+                      )}
+                      {quizData.timeline && (
+                        <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
+                          <span>⏰ Plazo:</span>
+                          <span className="text-white font-bold uppercase text-[9px] tracking-wider">{quizData.timeline}</span>
+                        </div>
+                      )}
+                      {quizData.attempted && (
+                        <div className="flex justify-between text-zinc-350">
+                          <span>🔄 Historial:</span>
+                          <span className="text-white font-bold text-[9px]">{quizData.attempted}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="space-y-4">
+                  <h1 className="text-3xl font-bold leading-[1.1] tracking-tight">
+                    Vende o alquila tu propiedad con la mejor estrategia digital del país
+                  </h1>
+                  <p className="text-xs text-justify leading-relaxed text-gray-400 font-light max-w-[340px]">
+                    Descubre cómo comercializamos propiedades de forma eficiente utilizando análisis de mercado exclusivo y las principales herramientas tecnológicas globales.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer indicator */}
+            <div className="mt-auto pt-6 flex justify-between items-center text-zinc-500 font-mono text-[9px] tracking-widest uppercase">
+              <span>© 2020 Honne Inmobiliaria</span>
+              <span>LIMA, PERÚ</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* --- INTERACTIVE PRESENTATION & DIAGNOSTIC STAGES CONTAINER --- */}
+        <main className="quiz-side flex flex-col bg-white relative h-screen max-h-[100dvh] overflow-hidden">
+          
+          {/* Top visual progress bar matching current state progression */}
+          <div className="progress-container h-1 w-full bg-gray-light absolute top-0 left-0 z-30">
+            <motion.div 
+              className="progress-bar h-full bg-brand-gold origin-left"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: getStepProgressPercentage() / 100 }}
+              transition={{ duration: 0.4, ease: 'easeInOut' }}
+            />
+          </div>
+
+          {/* Interactive Shell Body */}
+          <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar pt-1 bg-white">
+            <AnimatePresence mode="wait">
+              
+              {/* --- STAGE 1: PORTADA --- */}
+              {currentStep === 'portada' && (
+                <motion.div 
+                  key="portada"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  {/* Small Brand Header for mobile */}
+                  <div className="lg:hidden flex items-center gap-2 mb-3">
+                    <span className="text-base font-black tracking-[0.3em] uppercase brand-logo-border pl-3 border-l-4 border-brand-gold text-brand-black">HONNE</span>
+                  </div>
+
+                  {/* Main Display Heading */}
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-tight leading-tight text-left mb-2.5">
+                    ¿Quieres vender tu propiedad en <br />
+                    <span className="bg-brand-gold text-brand-black px-2 py-0.5 text-xs sm:text-sm md:text-base font-black inline-block mt-1 uppercase tracking-wider">
+                      Lima Top o Moderna?
+                    </span>
+                  </h2>
+
+                  <p className="text-gray-500 text-[11px] sm:text-xs font-semibold leading-relaxed mb-4 text-left">
+                    Descubre cómo comercializamos propiedades utilizando marketing digital, análisis de mercado, tecnología e inteligencia artificial.
+                  </p>
+
+                  {/* Staged premium visualization */}
+                  <div className="w-full h-32 sm:h-44 md:h-52 overflow-hidden rounded-sm relative shadow-sm mb-4">
+                    <img 
+                      src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80" 
+                      className="w-full h-full object-cover" 
+                      alt="Modern apartment interior" 
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+
+                  {/* Key Metrics Columns */}
+                  <div className="grid grid-cols-2 gap-2 mb-4 text-left font-sans">
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                      <p className="text-xs sm:text-sm font-extrabold text-brand-black">+700 mil</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">seguidores sociales</p>
+                    </div>
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                      <p className="text-xs sm:text-sm font-extrabold text-brand-black">+50</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">agentes expertos</p>
+                    </div>
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                      <p className="text-xs sm:text-sm font-extrabold text-brand-black">12</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">portales nacionales</p>
+                    </div>
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold bg-brand-gold/5">
+                      <p className="text-xs sm:text-sm font-extrabold text-brand-black">Tecnología e IA</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">comercialmente aplicada</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => goTo('propuesta_valor')}
+                    className="btn-geometric-primary group w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
+                  >
+                    CONOCER LA ESTRATEGIA
+                    <ArrowRight size={14} className="group-hover:translate-x-1.5 transition-transform" />
+                  </button>
+                </motion.div>
+              )}
+
+
+              {/* --- STAGE 2: PROPUESTA DE VALOR --- */}
+              {currentStep === 'propuesta_valor' && (
+                <motion.div 
+                  key="propuesta_valor"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">02 / PROPUESTA DE VALOR</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-left leading-tight mb-1.5">
+                    ¿Por qué algunas propiedades se venden más rápido que otras?
+                  </h2>
+                  <p className="text-brand-black font-extrabold text-[10px] uppercase tracking-wider pl-3 border-l-2 border-brand-gold mb-3 mt-1 text-left">
+                    Porque no basta con publicarlas.
+                  </p>
+                  <p className="text-gray-500 text-[11px] text-left mb-4 leading-normal">
+                    En Honne trabajamos sobre cuatro pilares estratégicos de alta efectividad que marcan una diferencia contundente en el mercado:
+                  </p>
+
+                  {/* Four pillars container */}
+                  <div className="space-y-2 text-left mb-5">
+                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
+                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
+                        <Radio size={14} />
+                      </div>
+                      <div>
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Alcance digital</h4>
+                        <p className="text-[10px] text-gray-500 leading-tight">Estrategias masivas multicanal para llegar a más compradores calificados.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
+                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
+                        <Users size={14} />
+                      </div>
+                      <div>
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Fuerza comercial</h4>
+                        <p className="text-[10px] text-gray-500 leading-tight">Un equipo unificado enfocado en multiplicar las visitas y oportunidades.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
+                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
+                        <LineChart size={14} />
+                      </div>
+                      <div>
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Análisis de mercado</h4>
+                        <p className="text-[10px] text-gray-500 leading-tight">Datos geográficos precisos para definir el precio correcto del bien.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
+                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
+                        <Cpu size={14} />
+                      </div>
+                      <div>
+                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Tecnología e IA</h4>
+                        <p className="text-[10px] text-gray-500 leading-tight">Sistemas automatizados e Inteligencia Artificial para tomar decisiones correctas.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => goTo('alcance_digital')}
+                    className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
+                  >
+                    CONTINUAR
+                    <ArrowRight size={14} />
+                  </button>
+                </motion.div>
+              )}
+
+
+              {/* --- STAGE 3: ALCANCE DIGITAL --- */}
+              {currentStep === 'alcance_digital' && (
+                <motion.div 
+                  key="alcance_digital"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">03 / ALCANCE DIGITAL</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <span className="text-[9px] text-brand-black font-extrabold bg-brand-gold mr-auto px-2 py-0.5 uppercase tracking-widest mb-3 rounded-none">
+                    Alcance de nivel superior
+                  </span>
+                  
+                  <h2 className="text-base sm:text-lg md:text-xl font-black text-left leading-tight mb-4">
+                    Infraestructura digital masiva para visibilizar tu propiedad
+                  </h2>
+
+                  <div className="grid grid-cols-2 gap-2 text-left mb-6">
+                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
+                      <Radio size={16} className="text-brand-black opacity-60" />
+                      <div>
+                        <p className="text-xs sm:text-sm font-black">+700 mil</p>
+                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">seguidores sociales</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
+                      <Globe size={16} className="text-brand-black opacity-60" />
+                      <div>
+                        <p className="text-xs sm:text-sm font-black">Presencia en 12</p>
+                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">portales nacionales</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
+                      <Video size={16} className="text-brand-black opacity-60" />
+                      <div>
+                        <p className="text-[11px] sm:text-xs font-black">Producción Pro</p>
+                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">audiovisual estética</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
+                      <Target size={16} className="text-brand-black opacity-60" />
+                      <div>
+                        <p className="text-[11px] sm:text-xs font-black">Segmentación IA</p>
+                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">campañas dinámicas</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => goTo('fuerza_comercial')}
+                    className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
+                  >
+                    SIGUIENTE
+                    <ArrowRight size={14} />
+                  </button>
+                </motion.div>
+              )}
+
+
+              {/* --- STAGE 4: FUERZA COMERCIAL --- */}
+              {currentStep === 'fuerza_comercial' && (
+                <motion.div 
+                  key="fuerza_comercial"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">04 / FUERZA COMERCIAL</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black text-left leading-tight mb-2">
+                    Tu propiedad no será promocionada por una sola persona
+                  </h2>
+                  <p className="text-gray-500 text-[11px] text-left mb-4">
+                    Multiplicamos las probabilidades de venta sincronizando a todo el equipo de asesores corporativos:
+                  </p>
+
+                  <div className="space-y-2 text-left mb-6">
+                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
+                      <UserCheck size={14} className="text-brand-black shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Más de 50 agentes especializados</p>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
+                      <Network size={14} className="text-brand-black shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Red comercial colaborativa cruzada</p>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
+                      <Eye size={14} className="text-brand-black shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Visitas estrictamente calificadas</p>
+                      </div>
+                    </div>
+
+                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
+                      <Activity size={14} className="text-brand-black shrink-0" />
+                      <div>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Seguimiento comercial persistente</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => goTo('analisis_mercado')}
+                    className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
+                  >
+                    SIGUIENTE
+                    <ArrowRight size={14} />
+                  </button>
+                </motion.div>
+              )}
+
+
+              {/* --- STAGE 5: ANÁLISIS DE MERCADO / ACM CURVE --- */}
+              {currentStep === 'analisis_mercado' && (
+                <motion.div 
+                  key="analisis_mercado"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">05 / ANÁLISIS DE MERCADO</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black text-left mb-1.5 leading-tight">
+                    Antes de publicar, analizamos el mercado
+                  </h2>
+                  <p className="text-gray-500 text-[10.5px] text-left mb-4 leading-normal">
+                    Utilizamos nuestro Análisis Comparativo de Mercado (ACM) para definir la estrategia correcta y evitar perder tiempo valioso.
+                  </p>
+
+                  {/* PREMIUM SVG BELL CURVE CHART ("Punto de equilibrio") */}
+                  <div className="bg-gray-light p-3 rounded-sm border border-gray-medium relative mb-4 flex flex-col items-center justify-center">
+                    <span className="text-[7px] font-mono tracking-widest text-gray-400 absolute top-2 right-3 uppercase">Modelo de Demanda v1.0</span>
+                    
+                    <svg viewBox="0 0 400 180" className="w-full h-24 sm:h-28 font-sans">
+                      <defs>
+                        <linearGradient id="curveGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                          <stop offset="0%" stopColor="#fff" stopOpacity={0.1} />
+                          <stop offset="100%" stopColor="#ffed51" stopOpacity={0.35} />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Equilibrium Area Fill */}
+                      <path 
+                        d="M 40,150 C 120,150 140,30 200,30 C 260,30 280,150 360,150 Z" 
+                        fill="url(#curveGradient)" 
+                      />
+
+                      {/* Base axis */}
+                      <line x1="20" y1="150" x2="380" y2="150" stroke="#E0E0E0" strokeWidth="1.5" strokeLinecap="round" />
+
+                      {/* Main elegant bell curve */}
+                      <path 
+                        d="M 40,150 C 120,150 140,30 200,30 C 260,30 280,150 360,150" 
+                        fill="none" 
+                        stroke="#111111" 
+                        strokeWidth="3" 
+                        strokeLinecap="round" 
+                      />
+
+                      {/* Dashed vertical lines indicating zones */}
+                      <line x1="200" y1="30" x2="200" y2="150" stroke="#111111" strokeWidth="1" strokeDasharray="3,3" />
+                      <line x1="120" y1="100" x2="120" y2="150" stroke="#E0E0E0" strokeWidth="1" strokeDasharray="3,3" />
+                      <line x1="280" y1="100" x2="280" y2="150" stroke="#E0E0E0" strokeWidth="1" strokeDasharray="3,3" strokeOpacity={0.5} />
+
+                      {/* Equilibrium Glowing Dot */}
+                      <circle cx="200" cy="30" r="6" fill="#111111" className="animate-pulse" />
+                      <circle cx="200" cy="30" r="3" fill="#ffed51" />
+                    </svg>
+
+                    {/* Chart legends matching the references */}
+                    <div className="grid grid-cols-3 w-full text-center mt-2.5 text-[8px] uppercase tracking-wider font-extrabold font-mono">
+                      <div className="text-rose-500">
+                        <p>📉 Muy Barato</p>
+                        <p className="text-[7.5px] font-normal text-gray-400 lowercase italic">pierdes dinero</p>
+                      </div>
+                      <div className="text-zinc-900 border-x border-gray-medium px-1 bg-brand-gold/20">
+                        <p>✨ Equilibrio</p>
+                        <p className="text-[7.5px] font-normal text-gray-500 lowercase italic">precio óptimo</p>
+                      </div>
+                      <div className="text-orange-500">
+                        <p>📈 Muy Caro</p>
+                        <p className="text-[7.5px] font-normal text-gray-400 lowercase italic">quemas tu bien</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-400 text-[10px] text-justify leading-relaxed mb-5 italic border-l-2 border-brand-gold pl-3">
+                    "Buscamos el punto de equilibrio exacto entre el precio de mercado y la demanda inmediata para asegurar una transacción exitosa."
+                  </p>
+
+                  <button 
+                    onClick={() => goTo('quiz_step_1')}
+                    className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
+                  >
+                    QUIERO INICIAR MI DIAGNÓSTICO
+                    <ArrowRight size={14} />
+                  </button>
+                </motion.div>
+              )}
+
+
+              {/* --- QUIZ STEP 1: INTENCIÓN --- */}
+              {currentStep === 'quiz_step_1' && (
+                <motion.div 
+                  key="quiz_step_1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 01 / 06</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1.5 text-center text-brand-black">¿Qué deseas hacer?</h2>
+                  <p className="text-gray-400 mb-6 text-center text-[11px]">Selecciona la intención para personalizar tu Ruta Honne</p>
+
+                  <div className="grid grid-cols-2 gap-3 w-full">
+                    <button 
+                      onClick={() => {
+                        handleIntentionChange('Vender');
+                        goTo('quiz_step_2');
+                      }} 
+                      className={`option-card py-8 flex flex-col items-center gap-2 ${quizData.intention === 'Vender' ? 'selected border-2 border-brand-black' : ''}`}
+                    >
+                      <span className="text-sm sm:text-base font-black uppercase tracking-wider text-brand-black">VENDER</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400">mi propiedad</span>
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        handleIntentionChange('Alquilar');
+                        goTo('quiz_step_2');
+                      }} 
+                      className={`option-card py-8 flex flex-col items-center gap-2 ${quizData.intention === 'Alquilar' ? 'selected border-2 border-brand-black' : ''}`}
+                    >
+                      <span className="text-sm sm:text-base font-black uppercase tracking-wider text-brand-black">ALQUILAR</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400">mi propiedad</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+
+              {/* --- QUIZ STEP 2: TIPO DE PROPIEDAD --- */}
+              {currentStep === 'quiz_step_2' && (
+                <motion.div 
+                  key="quiz_step_2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  <div className="flex justify-between items-center mb-6">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 02 / 06</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1.5 text-center text-brand-black">¿Qué tipo de propiedad es?</h2>
+                  <p className="text-gray-400 mb-6 text-center text-[11px]">Selecciona una opción</p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { type: 'Departamento', icon: Building2 },
+                      { type: 'Casa', icon: Home },
+                      { type: 'Terreno', icon: MapIcon },
+                      { type: 'Local Comercial', icon: Store }
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button 
+                          key={item.type}
+                          onClick={() => {
+                            setQuizData(prev => ({ ...prev, type: item.type as PropertyType }));
+                            goTo('quiz_step_3');
+                          }}
+                          className={`option-card flex flex-col items-center justify-center p-4 sm:p-5 ${quizData.type === item.type ? 'selected ring-2 ring-brand-black border-brand-black' : ''}`}
+                        >
+                          <div className="option-icon-wrapper mb-1.5 w-8 h-8">
+                            <Icon size={14} className="text-brand-black" />
+                          </div>
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-brand-black">{item.type}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+
+
+              {/* --- QUIZ STEP 3: UBICACIÓN Y DISTRITO --- */}
+              {currentStep === 'quiz_step_3' && (
+                <motion.div 
+                  key="quiz_step_3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto text-left justify-center"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 03 / 06</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">¿Dónde está ubicada tu propiedad?</h2>
+                  <p className="text-gray-400 mb-4 text-center text-[11px]">Ingresa la dirección o distrito</p>
+
+                  <div className="space-y-4 font-sans">
+                    {/* Address search box */}
+                    <div className="space-y-1">
+                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Ubicación física / Dirección</label>
+                      <div className="relative flex items-center bg-gray-light border border-gray-medium rounded-sm focus-within:border-brand-black transition-all">
+                        <input 
+                          type="text" 
+                          value={quizData.address}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setQuizData(prev => ({ ...prev, address: val }));
+                            setShowAddressSuggestions(val.length > 2);
+                          }}
+                          placeholder="Ej. Av. Larco 123, Miraflores..."
+                          className="w-full bg-transparent px-4 py-3 text-xs font-semibold focus:outline-none pr-10 text-brand-black"
+                        />
+                        <MapPin size={14} className="absolute right-4 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* Quick District Select Chips Grid */}
+                    <div className="space-y-1.5 pt-2">
+                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-zinc-400 block mb-1">Selección Rápida de Distrito Premium</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { name: 'Miraflores', label: '🌊 Miraflores' },
+                          { name: 'San Isidro', label: '🌳 San Isidro' },
+                          { name: 'Santiago de Surco', label: '🏡 Surco' },
+                          { name: 'San Borja', label: '🚴 San Borja' },
+                          { name: 'Barranco', label: '🎨 Barranco' },
+                          { name: 'La Molina', label: '⛰️ La Molina' }
+                        ].map((item) => {
+                          const isSelected = quizData.district === item.name;
+                          return (
+                            <motion.button
+                              type="button"
+                              key={item.name}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                setQuizData(prev => ({
+                                  ...prev,
+                                  district: item.name,
+                                  address: prev.address || item.name
+                                }));
+                              }}
+                              className={`py-2 px-1 border text-center rounded-sm transition-all text-[9.5px] uppercase font-bold tracking-wider cursor-pointer ${
+                                isSelected 
+                                  ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm font-black' 
+                                  : 'border-gray-medium bg-white hover:border-black text-brand-black'
+                              }`}
+                            >
+                              {item.label}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <div className="h-[1px] bg-gray-medium flex-1 opacity-60" />
+                      <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-zinc-400">o busca otro distrito de Lima</span>
+                      <div className="h-[1px] bg-gray-medium flex-1 opacity-60" />
+                    </div>
+
+                    {/* District Dropdown Select Fallback */}
+                    <div className="space-y-1">
+                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Todos los Distritos</label>
+                      <div className="relative">
+                        <select 
+                          value={quizData.district}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setQuizData(prev => ({ 
+                                ...prev, 
+                                district: val,
+                                address: prev.address || (val !== 'Otro distrito' ? val : '')
+                            }));
+                          }}
+                          className="w-full bg-gray-light border border-gray-medium px-4 py-3 text-xs font-semibold focus:outline-none appearance-none cursor-pointer rounded-sm text-brand-black"
+                        >
+                          <option value="">-- Elige de la lista completa --</option>
+                          {PREMIUM_DISTRICTS.map((d) => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                          <span className="text-[10px]">▼</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Another custom district element if selected 'Otro distrito' */}
+                    {quizData.district === 'Otro distrito' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-1"
+                      >
+                        <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Nombre del distrito</label>
+                        <input 
+                          type="text"
+                          value={otherDistrict}
+                          onChange={(e) => {
+                            setOtherDistrict(e.target.value);
+                            setQuizData(prev => ({ ...prev, address: prev.address || e.target.value }));
+                          }}
+                          placeholder="Escribe el nombre del distrito..."
+                          className="w-full bg-gray-light border border-gray-medium px-4 py-3 text-xs font-semibold focus:outline-none rounded-sm"
+                        />
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <div className="mt-5">
+                    <button 
+                      disabled={!quizData.address && !quizData.district}
+                      onClick={() => goTo('quiz_step_4')}
+                      className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 disabled:opacity-30 disabled:pointer-events-none"
+                    >
+                      CONTINUAR
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+
+              {/* --- QUIZ STEP 4: EXPECTATIVA ECONÓMICA WITH SLIDER --- */}
+              {currentStep === 'quiz_step_4' && (
+                <motion.div 
+                  key="quiz_step_4"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 04 / 06</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">¿Cuál es tu expectativa económica?</h2>
+                  <p className="text-gray-400 mb-4 text-center text-[11px]">
+                    {quizData.intention === 'Alquilar' ? '¿Cuánto esperas obtener por la renta?' : '¿Cuánto esperas obtener por la venta?'}
+                  </p>
+
+                  <div className="space-y-4">
+                    {/* Dollar/Sol Selection Tabs */}
+                    <div className="flex justify-center">
+                      <div className="flex bg-gray-light p-0.5 rounded-sm border border-gray-medium">
+                        <button 
+                          onClick={() => handleCurrencyChange('USD')}
+                          className={`px-4 py-1.5 text-[9px] font-extrabold uppercase tracking-widest transition-all ${quizData.currency === 'USD' ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-gray-400 hover:text-brand-black'}`}
+                        >
+                          DÓLARES (US$)
+                        </button>
+                        <button 
+                          onClick={() => handleCurrencyChange('PEN')}
+                          className={`px-4 py-1.5 text-[9px] font-extrabold uppercase tracking-widest transition-all ${quizData.currency === 'PEN' ? 'bg-brand-gold text-brand-black shadow-sm' : 'text-gray-400 hover:text-brand-black'}`}
+                        >
+                          SOLES (S/)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Huge formatted display input */}
+                    <div className="space-y-3">
+                      <div className="bg-gray-light border border-gray-medium p-3.5 rounded-sm flex items-center justify-between shadow-inner">
+                        <span className="text-base font-black text-gray-400 uppercase tracking-wider font-mono mr-4 shrink-0">
+                          {quizData.currency === 'USD' ? 'US$' : 'S/'}
+                        </span>
+                        
+                        <input 
+                          type="number"
+                          value={quizData.value}
+                          onChange={(e) => setQuizData(prev => ({ ...prev, value: e.target.value }))}
+                          className="w-full bg-transparent text-right text-xl font-black focus:outline-none text-brand-black"
+                          placeholder="000,000"
+                        />
+                      </div>
+
+                      {/* Fully Custom responsive Range Slider matching design reference */}
+                      <div className="space-y-1.5 pt-2">
+                        <div className="relative w-full h-1.5 bg-gray-light rounded-full border border-gray-medium">
+                          {/* Active filled track */}
+                          <div 
+                            className="absolute top-0 left-0 h-full bg-brand-black rounded-full"
+                            style={{ width: `${sliderPercentage}%` }}
+                          />
+                          {/* Real slider thumb controller overlay */}
+                          <input 
+                            type="range"
+                            min={sliderParams.min}
+                            max={sliderParams.max}
+                            step={sliderParams.step}
+                            value={quizData.value || sliderParams.min}
+                            onChange={(e) => setQuizData(prev => ({ ...prev, value: e.target.value }))}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          {/* Visible handle thumb */}
+                          <div 
+                            className="absolute top-1/2 -mt-1.5 w-3.5 h-3.5 bg-brand-gold border-[1.5px] border-brand-black rounded-full shadow-md pointer-events-none transform -translate-x-1/2"
+                            style={{ left: `${sliderPercentage}%` }}
+                          />
+                        </div>
+
+                        <div className="flex justify-between text-[8px] text-gray-400 font-mono">
+                          <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {sliderParams.min.toLocaleString('es-PE')}</span>
+                          <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {sliderParams.max.toLocaleString('es-PE')}</span>
+                        </div>
+                      </div>
+
+                      {/* Dynamic Strategy Feedback Card */}
+                      {(() => {
+                        const val = Number(quizData.value) || 0;
+                        const isUSD = quizData.currency === 'USD';
+                        const isVender = quizData.intention === 'Vender';
+                        let strategy = {
+                          title: "💡 Estimación Inicial",
+                          desc: "Mueve el control para ver la estrategia óptima de marketing y análisis digital recomendada por Honne."
+                        };
+
+                        if (val > 0) {
+                          if (isVender) {
+                            if (isUSD) {
+                              if (val < 150000) {
+                                strategy = {
+                                  title: "⚡ Segmento de Alta Liquidez",
+                                  desc: "Propiedades con rotación sumamente veloz. Perfecto para captar compradores aptos con crédito aprobado rápido."
+                                };
+                              } else if (val <= 450000) {
+                                strategy = {
+                                  title: "📊 Segmento Residencial Premium",
+                                  desc: "Mercado intermedio altamente competitivo. Destacaremos tu propiedad con Home Staging digital y video con drones."
+                                };
+                              } else {
+                                strategy = {
+                                  title: "💎 Segmento Luxury Exclusive",
+                                  desc: "Elite inmobiliaria. Activaremos relaciones directas corporativas y pautas segmentadas para perfiles A1."
+                                };
+                              }
+                            } else {
+                              if (val < 550000) {
+                                strategy = {
+                                  title: "⚡ Segmento de Alta Liquidez S/",
+                                  desc: "Demanda activa inmediata en Lima. Venta ágil recomendada aplicando tácticas express."
+                                };
+                              } else if (val <= 1650000) {
+                                strategy = {
+                                  title: "📊 Segmento Residencial Premium S/",
+                                  desc: "Ideal para captar familias de alto nivel. Exposición extendida en portales de elite."
+                                };
+                              } else {
+                                strategy = {
+                                  title: "💎 Segmento Luxury Exclusive S/",
+                                  desc: "Segmento de alta alcurnia. Pauta selectiva y producción audiovisual premium de primer orden."
+                                };
+                              }
+                            }
+                          } else {
+                            if (isUSD) {
+                              if (val < 1200) {
+                                strategy = {
+                                  title: "🏢 Alquiler Residencial Express",
+                                  desc: "Alta velocidad de ocupación. Aplicaremos filtros de riesgo digital sumamente rigurosos para tu tranquilidad."
+                                };
+                              } else {
+                                strategy = {
+                                  title: "💼 Alquiler Corporativo & Elite",
+                                  desc: "Perfil de embajadas, multinacionales y directores. Conexión directa a redes cerradas de reubicación."
+                                };
+                              }
+                            } else {
+                              if (val < 4200) {
+                                strategy = {
+                                  title: "🏢 Alquiler Residencial Express S/",
+                                  desc: "Arrendamiento veloz. Evaluamos antecedentes crediticios en tiempo real para inquilinos 100% seguros."
+                                };
+                              } else {
+                                strategy = {
+                                  title: "💼 Alquiler Corporativo & Elite S/",
+                                  desc: "Networking premium. Ideal para ejecutivos senior o expatriados con respaldo corporativo directo."
+                                };
+                              }
+                            }
+                          }
+                        }
+
+                        return (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            key={strategy.title}
+                            className="bg-brand-gold/10 border border-brand-gold/30 p-3 rounded-sm text-left mt-3"
+                          >
+                            <div className="flex items-center gap-1.5 text-zinc-900 mb-0.5 font-bold text-[10px] uppercase tracking-wide">
+                              <Sparkles size={11} className="text-brand-gold fill-brand-gold shrink-0 animate-pulse" />
+                              {strategy.title}
+                            </div>
+                            <p className="text-[9.5px] text-zinc-650 leading-relaxed font-semibold">
+                              {strategy.desc}
+                            </p>
+                          </motion.div>
+                        );
+                      })()}
+
+                      <p className="text-[9px] text-gray-400 text-center italic mt-1.5">
+                        Puedes ajustarlo directamente escribiendo o moviendo la barra.
+                      </p>
+                    </div>
+
+                    <div className="pt-2">
+                      <button 
+                        disabled={!quizData.value || Number(quizData.value) <= 0}
+                        onClick={() => goTo('quiz_step_5')}
+                        className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        CONTINUAR
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+
+              {/* --- QUIZ STEP 5: TIMELINE --- */}
+              {currentStep === 'quiz_step_5' && (
+                <motion.div 
+                  key="quiz_step_5"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 05 / 06</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">
+                    ¿Cuándo te gustaría {quizData.intention === 'Alquilar' ? 'alquilar' : 'vender'}?
+                  </h2>
+                  <p className="text-gray-400 mb-4 text-center text-[11px]">Selecciona la opción para continuar automáticamente</p>
+
+                  <div className="space-y-1.5">
+                    {[
+                      'lo antes posible',
+                      'De 0 a 3 meses',
+                      'De 4 a 6 meses',
+                      'De 7 a 12 meses',
+                      'Más de 12 meses'
+                    ].map((item) => (
+                      <button 
+                        key={item}
+                        onClick={() => {
+                          setQuizData(prev => ({ ...prev, timeline: item }));
+                          goTo('quiz_step_6');
+                        }}
+                        className={`w-full py-3 px-4 border text-left flex items-center justify-between group transition-all duration-300 ${quizData.timeline === item ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' : 'border-gray-medium bg-white hover:border-black text-brand-black'}`}
+                      >
+                        <span className="text-xs uppercase tracking-wide font-extrabold">{item}</span>
+                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${quizData.timeline === item ? 'border-brand-gold bg-brand-gold' : 'border-gray-medium'}`}>
+                          {quizData.timeline === item && (
+                            <div className="w-1 h-1 bg-black rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+
+              {/* --- QUIZ STEP 6: HISTORIAL --- */}
+              {currentStep === 'quiz_step_6' && (
+                <motion.div 
+                  key="quiz_step_6"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 06 / 06</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">
+                    ¿Has intentado {quizData.intention === 'Alquilar' ? 'alquilarla' : 'venderla'} antes?
+                  </h2>
+                  <p className="text-gray-400 mb-4 text-center text-[11px]">Selecciona la opción para continuar automáticamente</p>
+
+                  <div className="space-y-1.5">
+                    {[
+                      'Sí, por mi cuenta',
+                      'Sí, con otra agencia',
+                      'No, es la primera vez'
+                    ].map((item) => (
+                      <button 
+                        key={item}
+                        onClick={() => {
+                          setQuizData(prev => ({ ...prev, attempted: item }));
+                          goTo('contacto');
+                        }}
+                        className={`w-full py-3 px-4 border text-left flex items-center justify-between group transition-all duration-300 ${quizData.attempted === item ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' : 'border-gray-medium bg-white hover:border-black'}`}
+                      >
+                        <span className="text-xs uppercase tracking-wide font-extrabold">{item}</span>
+                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${quizData.attempted === item ? 'border-brand-gold bg-brand-gold' : 'border-gray-medium'}`}>
+                          {quizData.attempted === item && (
+                            <div className="w-1 h-1 bg-black rounded-full" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+
+              {/* --- DATOS DE CONTACTO: ÚLTIMO PASO --- */}
+              {currentStep === 'contacto' && (
+                <motion.div 
+                  key="contacto"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex flex-col p-4 sm:p-6 container max-w-lg mx-auto text-left justify-center"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
+                      <ArrowLeft size={16} />
+                    </button>
+                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">ÚLTIMO PASO</span>
+                    <div className="w-8"></div>
+                  </div>
+
+                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">¿Te gustaría que revisemos tu caso?</h2>
+                  <p className="text-gray-400 mb-4 text-center text-[11px]">
+                    Déjanos tus datos y un especialista de Honne se pondrá en contacto contigo de inmediato.
+                  </p>
+
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      goTo('processing');
+                    }} 
+                    className="space-y-3"
+                  >
+                    {/* Full Name */}
+                    <div className="space-y-1">
+                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Nombre y Apellidos</label>
+                      <div className="relative flex items-center bg-gray-light border border-gray-medium focus-within:border-brand-black rounded-sm transition-all">
+                        <input 
+                          required
+                          type="text" 
+                          value={quizData.name}
+                          onChange={(e) => setQuizData(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Tu nombre completo..."
+                          className="w-full bg-transparent px-4 py-3 text-xs font-semibold focus:outline-none pr-10 text-brand-black"
+                        />
+                        <User size={14} className="absolute right-4 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* WhatsApp */}
+                    <div className="space-y-1">
+                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">WhatsApp / Teléfono</label>
+                      <div className="relative flex items-center bg-gray-light border border-gray-medium focus-within:border-brand-black rounded-sm transition-all">
+                        <input 
+                          required
+                          type="tel" 
+                          value={quizData.phone}
+                          onChange={(e) => setQuizData(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="Tu número de contacto..."
+                          className="w-full bg-transparent px-4 py-3 text-xs font-semibold focus:outline-none pr-10 text-brand-black"
+                        />
+                        <Phone size={14} className="absolute right-4 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div className="space-y-1">
+                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Correo electrónico (opcional)</label>
+                      <div className="relative flex items-center bg-gray-light border border-gray-medium focus-within:border-brand-black rounded-sm transition-all">
+                        <input 
+                          type="email" 
+                          value={quizData.email}
+                          onChange={(e) => setQuizData(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="ejemplo@correo.com"
+                          className="w-full bg-transparent px-4 py-3 text-xs font-semibold focus:outline-none pr-10 text-brand-black"
+                        />
+                        <Mail size={14} className="absolute right-4 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* Policy checkbox preselected */}
+                    <div className="flex items-start gap-2 pt-1">
+                      <input 
+                        required
+                        type="checkbox" 
+                        id="accept-terms"
+                        checked={quizData.acceptTerms}
+                        onChange={(e) => setQuizData(prev => ({ ...prev, acceptTerms: e.target.checked }))}
+                        className="w-3.5 h-3.5 accent-brand-gold mt-0.5 shrink-0 cursor-pointer"
+                      />
+                      <label htmlFor="accept-terms" className="text-[9px] text-gray-400 font-semibold select-none cursor-pointer leading-tight mb-3">
+                        Acepto la <span className="underline text-brand-black">política de privacidad</span> y el <span className="underline text-brand-black">tratamiento de datos</span>.
+                      </label>
+                    </div>
+
+                    <button 
+                      type="submit"
+                      disabled={!quizData.name || !quizData.phone || !quizData.acceptTerms}
+                      className="w-full bg-green-500 hover:bg-green-600 active:scale-[0.99] disabled:bg-gray-400 text-white font-extrabold py-3.5 px-6 rounded-sm flex items-center justify-center gap-3 transition-all uppercase tracking-widest text-[10px] shadow-md shadow-green-500/10 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      <Phone size={13} fill="currentColor" />
+                      ENVIAR POR WHATSAPP
+                      <ArrowRight size={13} />
+                    </button>
+                    <p className="text-[9px] text-zinc-400 text-center font-medium mt-1">
+                      ⚠️ Al presionar, ingresarás a la pantalla de redirección y se abrirá tu chat de WhatsApp automáticamente.
+                    </p>
+                  </form>
+                </motion.div>
+              )}
+
+
+              {/* --- STAGE 13: INTERACTIVE REDIRECTION INTERLUDE --- */}
+              {currentStep === 'processing' && (
+                <motion.div 
+                  key="processing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 flex flex-col p-6 text-center justify-center max-w-lg mx-auto"
+                >
+                  <div className="relative mb-8 flex flex-col items-center">
+                    {/* Concentric engaging glowing spinner */}
+                    <div className="relative w-24 h-24 mb-6">
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        className="absolute inset-0 border-4 border-gray-lighter border-t-green-500 rounded-full"
+                      />
+                      <motion.div 
+                        animate={{ rotate: -360 }}
+                        transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+                        className="absolute inset-2 border-2 border-gray-light border-b-brand-gold rounded-full opacity-70"
+                      />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-black font-mono text-brand-black">{redirectProgress}%</span>
+                        <span className="text-[8px] uppercase tracking-wider text-green-600 font-extrabold animate-pulse">POSTING</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar Container */}
+                    <div className="w-full bg-gray-light h-1.5 rounded-full overflow-hidden mb-6 border border-gray-medium/40">
+                      <motion.div 
+                        className="h-full bg-green-500 origin-left"
+                        animate={{ width: `${redirectProgress}%` }}
+                        transition={{ duration: 0.1 }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Dynamic engaging micro-steps to hook the lead */}
+                  <div className="bg-gray-light/60 border border-gray-medium/40 p-4.5 rounded-sm text-left space-y-2 mb-6 shadow-inner">
+                    <p className="text-[9px] uppercase tracking-widest text-zinc-400 font-monobold font-bold mb-1 border-b border-gray-medium/50 pb-1">Análisis de Viabilidad Honne</p>
+                    
+                    <div className="flex items-center gap-2 text-xs">
+                      <CheckCircle2 size={13} className={redirectProgress >= 20 ? "text-green-500" : "text-gray-300"} />
+                      <span className={`text-[11px] font-semibold ${redirectProgress >= 20 ? "text-brand-black" : "text-gray-400"}`}>
+                        Sincronizando información de {quizData.name || 'tu propiedad'}...
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      <CheckCircle2 size={13} className={redirectProgress >= 55 ? "text-green-500" : "text-gray-300"} />
+                      <span className={`text-[11px] font-semibold ${redirectProgress >= 55 ? "text-brand-black" : "text-gray-400"}`}>
+                        Estableciendo modelo de equilibrio en {quizData.district || 'Lima'}...
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      <CheckCircle2 size={13} className={redirectProgress >= 85 ? "text-green-500" : "text-gray-300"} />
+                      <span className={`text-[11px] font-semibold ${redirectProgress >= 85 ? "text-brand-black" : "text-gray-400"}`}>
+                        Inyectando diagnóstico a sistema express Honne...
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      <Loader2 size={13} className={`animate-spin ${redirectProgress >= 95 ? "text-green-500" : "text-gray-400"}`} />
+                      <span className={`text-[11px] font-extrabold uppercase ${redirectProgress >= 95 ? "text-green-600" : "text-gray-450"}`}>
+                        {redirectProgress === 100 ? "Redirigiendo de inmediato a WhatsApp..." : "Preparando desvío seguro de datos..."}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h3 className="text-base font-black mb-1.5 tracking-tight text-brand-black uppercase">
+                    Redirigiéndote a WhatsApp...
+                  </h3>
+                  
+                  <p className="text-[11px] text-zinc-500 font-medium max-w-sm mx-auto leading-relaxed mb-4">
+                    Estamos abriendo tu ventana de comunicación directa. En caso de que no se abra automáticamente, toca el botón verde para asegurar tu prioridad.
+                  </p>
+
+                  {/* Fallback & Acceleration Button */}
+                  <a 
+                    href={getWhatsAppLink()}
+                    className="w-full py-3 sm:py-3.5 bg-green-500 hover:bg-green-600 font-extrabold uppercase tracking-widest text-[10px] text-white flex items-center justify-center gap-2 transition-all text-center shadow-md shadow-green-500/10 cursor-pointer rounded-sm"
+                  >
+                    <Phone size={13} fill="currentColor" />
+                    IR DIRECTO A WHATSAPP EXPRESS
+                  </a>
+                </motion.div>
+              )}
+
+
+              {/* --- STAGE 13 FINAL: CONFIRMACIÓN & OPCIÓN WHATSAPP --- */}
+              {currentStep === 'confirmacion' && (
+                <motion.div 
+                  key="confirmacion"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 overflow-y-auto no-scrollbar flex flex-col justify-center"
+                >
+                  <div className="container max-w-3xl mx-auto p-4 sm:p-6">
+                    
+                    {/* Standard header tracking matching reference */}
+                    <div className="flex border-b border-gray-medium pb-2 justify-between font-mono text-[8px] tracking-widest text-zinc-400 font-bold mb-4 uppercase">
+                      <span>13 / CONFIRMACIÓN</span>
+                      <span>13 / OPCIÓN WHATSAPP</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 text-left">
+                      
+                      {/* Left Block: Check and Thank you message */}
+                      <div className="md:col-span-6 p-4 border border-gray-medium flex flex-col justify-between rounded-sm bg-white">
+                        <div className="flex flex-col">
+                          <div className="w-10 h-10 bg-brand-gold rounded-full flex items-center justify-center mb-3 shadow-md border border-brand-black/10">
+                            <CheckCircle2 size={18} className="text-brand-black" />
+                          </div>
+                          
+                          <h2 className="text-lg font-black mb-2 leading-tight text-brand-black">¡Datos Recibidos!</h2>
+                          
+                          <p className="text-[11px] text-gray-500 leading-relaxed font-medium mb-3">
+                            Tu solicitud ha sido guardada con éxito en nuestra plataforma. Para ser atendido lo más rápido posible, te pedimos que <span className="font-extrabold text-brand-black">toques el botón de WhatsApp</span> para enviar la consulta directo a nuestro equipo express. ¡Te atenderemos de inmediato!
+                          </p>
+                        </div>
+
+                        {/* Staged portfolio apartment image inside thank you box */}
+                        <div className="w-full h-24 overflow-hidden relative shadow-inner">
+                          <img 
+                            src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                            className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 transition-all duration-700"
+                            alt="Interior staged living room"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Right Block: Direct contact via WhatsApp card */}
+                      <div className="md:col-span-6 flex flex-col gap-4">
+                        
+                        {/* WhatsApp Card Container */}
+                        <div className="p-4 border-2 border-green-500 bg-green-500/[0.03] flex flex-col rounded-sm">
+                          <div className="flex items-center gap-1.5 text-green-600 mb-2">
+                            <Send size={12} className="animate-bounce" />
+                            <span className="text-[8px] font-black uppercase tracking-widest font-mono">Paso Final Obligatorio</span>
+                          </div>
+
+                          <h3 className="text-xs font-black mb-1 uppercase text-brand-black">PROCESAR CONSULTA POR WHATSAPP</h3>
+                          <p className="text-[10px] text-gray-600 font-semibold mb-4 leading-relaxed">
+                            ⚠️ Presiona el botón verde para enviar los datos de tu quiz directo a nuestro asesor y recibir tu Ruta de Venta Honne de inmediato.
+                          </p>
+
+                          <a 
+                            href={getWhatsAppLink()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-3 bg-green-500 hover:bg-green-600 font-extrabold uppercase tracking-widest text-[10px] text-white flex items-center justify-center gap-2 transition-all text-center shadow-lg shadow-green-500/20 cursor-pointer transform hover:scale-[1.01]"
+                          >
+                            <Phone size={12} />
+                            ENVIAR CONSULTA POR WHATSAPP
+                          </a>
+
+                          <span className="text-[8px] text-gray-400 mt-2 text-center font-semibold uppercase tracking-wider">
+                            Atención express inmediata 24/7
+                          </span>
+                        </div>
+
+                        {/* Four Honne pillars values for security enforcement */}
+                        <div className="p-4 border border-gray-medium rounded-sm space-y-2 bg-white">
+                          <h4 className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1">Tu beneficio con Honne</h4>
+                          
+                          <div className="flex gap-2.5 items-start">
+                            <span className="text-xs">🎯</span>
+                            <div>
+                              <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-black leading-none">Ruta de venta express</p>
+                              <p className="text-[8px] text-gray-400 leading-none mt-0.5">Diagnóstico preciso de precio del mercado y demanda potencial.</p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2.5 items-start">
+                            <span className="text-xs">✅</span>
+                            <div>
+                              <p className="text-[10px] font-extrabold uppercase tracking-wider text-brand-black leading-none">Transparencia y seguridad</p>
+                              <p className="text-[8px] text-gray-400 leading-none mt-0.5">Acompañamiento legal completo para una venta sin complicaciones.</p>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Simple Bottom Footer inside active shell */}
+          <footer className="p-6 border-t border-gray-medium bg-white z-20 flex justify-between items-center shrink-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest opacity-30">© 2018 - 2020 Honne Inmobiliaria</span>
+            <div className="flex gap-4 opacity-30">
+              <Phone size={14} className="cursor-pointer" />
+              <Mail size={14} className="cursor-pointer" strokeWidth={2.4} />
+            </div>
+          </footer>
+        </main>
       </div>
     </div>
   );
