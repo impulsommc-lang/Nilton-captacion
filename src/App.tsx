@@ -476,7 +476,7 @@ export default function App() {
                   </div>
 
                   {/* Staged premium visualization */}
-                  <div className="w-full h-32 xs:h-36 sm:h-44 md:h-52 overflow-hidden rounded-sm relative shadow-sm my-2">
+                  <div className="w-full h-48 xs:h-56 sm:h-64 md:h-72 overflow-hidden rounded-sm relative shadow-sm my-2">
                     <img 
                       src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80" 
                       className="w-full h-full object-cover" 
