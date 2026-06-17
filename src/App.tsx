@@ -453,27 +453,30 @@ export default function App() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
-                  className="flex-1 flex flex-col p-3.5 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                  className="flex-1 min-h-[84vh] sm:min-h-0 flex flex-col justify-between p-4.5 xs:p-6 sm:p-8 container max-w-xl mx-auto"
                 >
-                  {/* Small Brand Header for mobile */}
-                  <div className="lg:hidden flex items-center gap-2 mb-1.5">
-                    <span className="text-base font-black tracking-[0.3em] uppercase brand-logo-border pl-3 border-l-4 border-brand-gold text-brand-black">HONNE</span>
+                  {/* Title and Description Group */}
+                  <div className="space-y-1.5">
+                    {/* Small Brand Header for mobile */}
+                    <div className="lg:hidden flex items-center gap-2 mb-1">
+                      <span className="text-base font-black tracking-[0.3em] uppercase brand-logo-border pl-3 border-l-4 border-brand-gold text-brand-black">HONNE</span>
+                    </div>
+
+                    {/* Main Display Heading */}
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-tight leading-tight text-left">
+                      ¿Quieres vender tu propiedad en <br />
+                      <span className="bg-brand-gold text-brand-black px-2 py-0.5 text-xs sm:text-sm md:text-base font-black inline-block mt-0.5 uppercase tracking-wider">
+                        Lima Top o Moderna?
+                      </span>
+                    </h2>
+
+                    <p className="text-gray-500 text-[11px] sm:text-xs font-semibold leading-normal text-left">
+                      Descubre cómo comercializamos propiedades utilizando marketing digital, análisis de mercado, tecnología e inteligencia artificial.
+                    </p>
                   </div>
 
-                  {/* Main Display Heading */}
-                  <h2 className="text-base sm:text-xl md:text-2xl font-black tracking-tight leading-tight text-left mb-1.5">
-                    ¿Quieres vender tu propiedad en <br />
-                    <span className="bg-brand-gold text-brand-black px-2 py-0.5 text-xs sm:text-sm md:text-base font-black inline-block mt-0.5 uppercase tracking-wider">
-                      Lima Top o Moderna?
-                    </span>
-                  </h2>
-
-                  <p className="text-gray-500 text-[10.5px] sm:text-xs font-semibold leading-normal mb-2.5 text-left">
-                    Descubre cómo comercializamos propiedades utilizando marketing digital, análisis de mercado, tecnología e inteligencia artificial.
-                  </p>
-
                   {/* Staged premium visualization */}
-                  <div className="w-full h-24 sm:h-44 md:h-52 overflow-hidden rounded-sm relative shadow-sm mb-2.5">
+                  <div className="w-full h-32 xs:h-36 sm:h-44 md:h-52 overflow-hidden rounded-sm relative shadow-sm my-2">
                     <img 
                       src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80" 
                       className="w-full h-full object-cover" 
@@ -483,28 +486,28 @@ export default function App() {
                   </div>
 
                   {/* Key Metrics Columns */}
-                  <div className="grid grid-cols-2 gap-2 mb-3 text-left font-sans">
-                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                  <div className="grid grid-cols-2 gap-2 mb-2 text-left font-sans">
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold flex flex-col justify-center min-h-[42px]">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">+700 mil</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">seguidores</p>
+                      <p className="text-[8.5px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">seguidores</p>
                     </div>
-                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold flex flex-col justify-center min-h-[42px]">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">+50</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">agentes inmobiliarios</p>
+                      <p className="text-[8.5px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">agentes inmobiliarios</p>
                     </div>
-                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold flex flex-col justify-center min-h-[42px]">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">12</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">portales inmobiliarios</p>
+                      <p className="text-[8.5px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">portales inmobiliarios</p>
                     </div>
-                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold bg-brand-gold/5">
+                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold bg-brand-gold/5 flex flex-col justify-center min-h-[42px]">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">Tecnología e IA</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">comercialmente aplicada</p>
+                      <p className="text-[8.5px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">comercialmente aplicada</p>
                     </div>
                   </div>
 
                   <button 
                     onClick={() => goTo('propuesta_valor')}
-                    className="btn-geometric-primary group w-full flex items-center justify-center gap-4 py-2.5 sm:py-3.5"
+                    className="btn-geometric-primary group w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
                   >
                     CONOCER LA ESTRATEGIA
                     <ArrowRight size={14} className="group-hover:translate-x-1.5 transition-transform" />
