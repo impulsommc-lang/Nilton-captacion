@@ -1413,6 +1413,15 @@ export default function App() {
                   <form 
                     onSubmit={(e) => {
                       e.preventDefault();
+                      // Fire Meta Pixel conversion event
+                      if (typeof window !== 'undefined' && (window as any).fbq) {
+                        try {
+                          (window as any).fbq('track', 'Lead');
+                          (window as any).fbq('track', 'ClientePotencial');
+                        } catch (err) {
+                          console.error("Meta Pixel tracking error:", err);
+                        }
+                      }
                       goTo('processing');
                     }} 
                     className="space-y-3"
