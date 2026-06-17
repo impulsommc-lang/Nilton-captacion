@@ -254,7 +254,7 @@ export default function App() {
   // Main WhatsApp link compiler using real Unicode emojis
   const getWhatsAppLink = () => {
     const formattedValue = quizData.value
-      ? `${quizData.currency === 'USD' ? 'US$' : 'S/'} ${Number(quizData.value).toLocaleString('es-PE')}`
+      ? `${quizData.currency === 'USD' ? 'US$' : 'S/'} ${Number(quizData.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
       : 'No especificada';
 
     const message = `Hola Honne. Acabo de completar la solicitud.\n\n` +
@@ -390,7 +390,7 @@ export default function App() {
                         <div className="flex justify-between border-b border-zinc-800/40 pb-1.5 text-zinc-350">
                           <span>💰 Expectativa:</span>
                           <span className="text-brand-gold font-bold font-sans">
-                            {quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(quizData.value).toLocaleString('es-PE')}
+                            {quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(quizData.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
                           </span>
                         </div>
                       )}
@@ -453,27 +453,27 @@ export default function App() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                  className="flex-1 flex flex-col p-3.5 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
                 >
                   {/* Small Brand Header for mobile */}
-                  <div className="lg:hidden flex items-center gap-2 mb-3">
+                  <div className="lg:hidden flex items-center gap-2 mb-1.5">
                     <span className="text-base font-black tracking-[0.3em] uppercase brand-logo-border pl-3 border-l-4 border-brand-gold text-brand-black">HONNE</span>
                   </div>
 
                   {/* Main Display Heading */}
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-black tracking-tight leading-tight text-left mb-2.5">
+                  <h2 className="text-base sm:text-xl md:text-2xl font-black tracking-tight leading-tight text-left mb-1.5">
                     ¿Quieres vender tu propiedad en <br />
-                    <span className="bg-brand-gold text-brand-black px-2 py-0.5 text-xs sm:text-sm md:text-base font-black inline-block mt-1 uppercase tracking-wider">
+                    <span className="bg-brand-gold text-brand-black px-2 py-0.5 text-xs sm:text-sm md:text-base font-black inline-block mt-0.5 uppercase tracking-wider">
                       Lima Top o Moderna?
                     </span>
                   </h2>
 
-                  <p className="text-gray-500 text-[11px] sm:text-xs font-semibold leading-relaxed mb-4 text-left">
+                  <p className="text-gray-500 text-[10.5px] sm:text-xs font-semibold leading-normal mb-2.5 text-left">
                     Descubre cómo comercializamos propiedades utilizando marketing digital, análisis de mercado, tecnología e inteligencia artificial.
                   </p>
 
                   {/* Staged premium visualization */}
-                  <div className="w-full h-32 sm:h-44 md:h-52 overflow-hidden rounded-sm relative shadow-sm mb-4">
+                  <div className="w-full h-24 sm:h-44 md:h-52 overflow-hidden rounded-sm relative shadow-sm mb-2.5">
                     <img 
                       src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80" 
                       className="w-full h-full object-cover" 
@@ -483,20 +483,20 @@ export default function App() {
                   </div>
 
                   {/* Key Metrics Columns */}
-                  <div className="grid grid-cols-2 gap-2 mb-4 text-left font-sans">
-                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                  <div className="grid grid-cols-2 gap-2 mb-3 text-left font-sans">
+                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">+700 mil</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">seguidores sociales</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">seguidores</p>
                     </div>
-                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">+50</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">agentes expertos</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">agentes inmobiliarios</p>
                     </div>
-                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
+                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">12</p>
-                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">portales nacionales</p>
+                      <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">portales inmobiliarios</p>
                     </div>
-                    <div className="p-2 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold bg-brand-gold/5">
+                    <div className="p-1.5 sm:p-2.5 bg-gray-light border-l-2 border-brand-gold bg-brand-gold/5">
                       <p className="text-xs sm:text-sm font-extrabold text-brand-black">Tecnología e IA</p>
                       <p className="text-[8px] sm:text-[9px] text-gray-400 uppercase tracking-wider font-semibold">comercialmente aplicada</p>
                     </div>
@@ -504,7 +504,7 @@ export default function App() {
 
                   <button 
                     onClick={() => goTo('propuesta_valor')}
-                    className="btn-geometric-primary group w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
+                    className="btn-geometric-primary group w-full flex items-center justify-center gap-4 py-2.5 sm:py-3.5"
                   >
                     CONOCER LA ESTRATEGIA
                     <ArrowRight size={14} className="group-hover:translate-x-1.5 transition-transform" />
@@ -534,7 +534,7 @@ export default function App() {
                     ¿Por qué algunas propiedades se venden más rápido que otras?
                   </h2>
                   <p className="text-brand-black font-extrabold text-[10px] uppercase tracking-wider pl-3 border-l-2 border-brand-gold mb-3 mt-1 text-left">
-                    Porque no basta con publicarlas.
+                    Porque no basta con publicarlas en uno o dos lugares.
                   </p>
                   <p className="text-gray-500 text-[11px] text-left mb-4 leading-normal">
                     En Honne trabajamos sobre cuatro pilares estratégicos de alta efectividad que marcan una diferencia contundente en el mercado:
@@ -578,7 +578,7 @@ export default function App() {
                       </div>
                       <div>
                         <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Tecnología e IA</h4>
-                        <p className="text-[10px] text-gray-500 leading-tight">Sistemas automatizados e Inteligencia Artificial para tomar decisiones correctas.</p>
+                        <p className="text-[10px] text-gray-500 leading-tight">Sistemas automatizados e Inteligencia Artificial para ser más rápido que los demás.</p>
                       </div>
                     </div>
                   </div>
@@ -619,36 +619,42 @@ export default function App() {
                     Infraestructura digital masiva para visibilizar tu propiedad
                   </h2>
 
-                  <div className="grid grid-cols-2 gap-2 text-left mb-6">
-                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
+                   <div className="grid grid-cols-2 gap-2 text-left mb-6 font-sans">
+                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem]">
                       <Radio size={16} className="text-brand-black opacity-60" />
                       <div>
                         <p className="text-xs sm:text-sm font-black">+700 mil</p>
-                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">seguidores sociales</p>
+                        <p className="text-[8.5px] text-gray-500 uppercase tracking-wider mt-0.5 font-bold leading-tight">seguidores</p>
                       </div>
                     </div>
 
-                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
+                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem]">
                       <Globe size={16} className="text-brand-black opacity-60" />
                       <div>
                         <p className="text-xs sm:text-sm font-black">Presencia en 12</p>
-                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">portales nacionales</p>
+                        <p className="text-[8.5px] text-gray-500 uppercase tracking-wider mt-0.5 font-bold leading-tight">portales inmobiliarios</p>
                       </div>
                     </div>
 
-                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
-                      <Video size={16} className="text-brand-black opacity-60" />
+                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem] col-span-2">
+                      <div className="flex justify-between items-center mb-0.5">
+                        <Video size={16} className="text-brand-black opacity-60" />
+                        <span className="text-[7.5px] uppercase tracking-wider font-extrabold text-brand-gold bg-zinc-900 px-1.5 py-0.5">EXCLUSIVO</span>
+                      </div>
                       <div>
-                        <p className="text-[11px] sm:text-xs font-black">Producción Pro</p>
-                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">audiovisual estética</p>
+                        <p className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-tight text-zinc-900">producción audiovisual especializada y profesional</p>
+                        <p className="text-[8.5px] text-zinc-500 font-semibold mt-0.5 leading-tight">con seguimiento y remarketing permanente para llegar al perfil ideal.</p>
                       </div>
                     </div>
 
-                    <div className="p-3 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between h-24">
-                      <Target size={16} className="text-brand-black opacity-60" />
+                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem] col-span-2">
+                      <div className="flex justify-between items-center mb-0.5">
+                        <Target size={16} className="text-brand-black opacity-60" />
+                        <span className="text-[7.5px] uppercase tracking-wider font-extrabold text-brand-gold bg-zinc-900 px-1.5 py-0.5">TECNOLÓGICO</span>
+                      </div>
                       <div>
-                        <p className="text-[11px] sm:text-xs font-black">Segmentación IA</p>
-                        <p className="text-[9px] text-gray-500 uppercase tracking-wider mt-0.5">campañas dinámicas</p>
+                        <p className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-tight text-zinc-900">segmentación y campañas publicitarias</p>
+                        <p className="text-[8.5px] text-zinc-500 font-semibold mt-0.5 leading-tight">Estrategias robustas de pauta digital optimizadas en tiempo real.</p>
                       </div>
                     </div>
                   </div>
@@ -699,7 +705,7 @@ export default function App() {
                     <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
                       <Network size={14} className="text-brand-black shrink-0" />
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Red comercial colaborativa cruzada</p>
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Red comercial colaborativa externa</p>
                       </div>
                     </div>
 
@@ -818,7 +824,7 @@ export default function App() {
                     onClick={() => goTo('quiz_step_1')}
                     className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
                   >
-                    QUIERO INICIAR MI DIAGNÓSTICO
+                    QUIERO PROBAR EL MÉTODO HONNE
                     <ArrowRight size={14} />
                   </button>
                 </motion.div>
@@ -1122,9 +1128,18 @@ export default function App() {
                           value={quizData.value}
                           onChange={(e) => setQuizData(prev => ({ ...prev, value: e.target.value }))}
                           className="w-full bg-transparent text-right text-xl font-black focus:outline-none text-brand-black"
-                          placeholder="000,000"
+                          placeholder="000.000"
                         />
                       </div>
+
+                      {quizData.value && (
+                        <div className="flex justify-between items-center px-2 bg-zinc-900 text-brand-gold text-[11px] font-black py-1.5 rounded-sm shadow-sm select-none">
+                          <span className="uppercase font-mono tracking-widest text-[8px] text-zinc-400">LECTURA FORMATEADA:</span>
+                          <span className="font-mono text-xs sm:text-sm">
+                            {quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(quizData.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                          </span>
+                        </div>
+                      )}
 
                       {/* Fully Custom responsive Range Slider matching design reference */}
                       <div className="space-y-1.5 pt-2">
@@ -1152,8 +1167,8 @@ export default function App() {
                         </div>
 
                         <div className="flex justify-between text-[8px] text-gray-400 font-mono">
-                          <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {sliderParams.min.toLocaleString('es-PE')}</span>
-                          <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {sliderParams.max.toLocaleString('es-PE')}</span>
+                          <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(sliderParams.min).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span>
+                          <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(sliderParams.max).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span>
                         </div>
                       </div>
 
@@ -1295,11 +1310,10 @@ export default function App() {
 
                   <div className="space-y-1.5">
                     {[
-                      'lo antes posible',
-                      'De 0 a 3 meses',
-                      'De 4 a 6 meses',
-                      'De 7 a 12 meses',
-                      'Más de 12 meses'
+                      'Lo antes posible',
+                      'Entre 0 a 3 meses',
+                      'Entre 3 a 6 meses',
+                      'Entre 6 a 12 meses'
                     ].map((item) => (
                       <button 
                         key={item}
@@ -1340,15 +1354,15 @@ export default function App() {
                   </div>
 
                   <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">
-                    ¿Has intentado {quizData.intention === 'Alquilar' ? 'alquilarla' : 'venderla'} antes?
+                    Actualmente, ¿cómo estás gestionando la {quizData.intention === 'Alquilar' ? 'renta/alquiler' : 'venta'} de tu propiedad?
                   </h2>
                   <p className="text-gray-400 mb-4 text-center text-[11px]">Selecciona la opción para continuar automáticamente</p>
 
                   <div className="space-y-1.5">
                     {[
-                      'Sí, por mi cuenta',
-                      'Sí, con otra agencia',
-                      'No, es la primera vez'
+                      quizData.intention === 'Alquilar' ? 'Aún no la estoy ofreciendo en alquiler.' : 'Aún no la estoy ofreciendo en venta.',
+                      quizData.intention === 'Alquilar' ? 'La estoy alquilando por mi cuenta.' : 'La estoy vendiendo por mi cuenta.',
+                      'La estoy trabajando con una agencia inmobiliaria.'
                     ].map((item) => (
                       <button 
                         key={item}
@@ -1356,7 +1370,7 @@ export default function App() {
                           setQuizData(prev => ({ ...prev, attempted: item }));
                           goTo('contacto');
                         }}
-                        className={`w-full py-3 px-4 border text-left flex items-center justify-between group transition-all duration-300 ${quizData.attempted === item ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' : 'border-gray-medium bg-white hover:border-black'}`}
+                        className={`w-full py-3 px-4 border text-left flex items-center justify-between group transition-all duration-300 ${quizData.attempted === item ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' : 'border-gray-medium bg-white hover:border-black text-brand-black'}`}
                       >
                         <span className="text-xs uppercase tracking-wide font-extrabold">{item}</span>
                         <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${quizData.attempted === item ? 'border-brand-gold bg-brand-gold' : 'border-gray-medium'}`}>
