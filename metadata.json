@@ -2,5 +2,5 @@
   "name": "Angela Carmona | Real Estate Quiz",
   "description": "Premium real estate quiz funnel for property owners to discover their selling strategy.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

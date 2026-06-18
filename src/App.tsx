@@ -18,6 +18,8 @@ import {
   ArrowLeft,
   Loader2,
   Lock,
+  Briefcase,
+  Layers,
   ShieldCheck,
   Clock,
   Search,
@@ -45,10 +47,10 @@ import {
 
 // --- Types ---
 
-type PropertyType = 'Departamento' | 'Casa' | 'Terreno' | 'Local Comercial';
+type PropertyType = 'Departamento' | 'Casa' | 'Oficina' | 'Terreno' | 'Otro';
 
 interface QuizData {
-  intention: 'Vender' | 'Alquilar' | null;
+  intention: 'Vender' | 'Alquilar' | 'Valuar' | null;
   type: PropertyType | null;
   address: string;
   district: string;
@@ -56,6 +58,7 @@ interface QuizData {
   currency: 'USD' | 'PEN';
   timeline: string | null;
   attempted: string | null;
+  state: string | null; // Physical condition state
   name: string;
   phone: string;
   email: string;
@@ -94,6 +97,7 @@ export default function App() {
     currency: 'USD',
     timeline: null,
     attempted: null,
+    state: null,
     name: '',
     phone: '',
     email: '',
@@ -111,8 +115,8 @@ export default function App() {
       case 'quiz_step_1': return 1;
       case 'quiz_step_2': return 2;
       case 'quiz_step_3': return 3;
-      case 'quiz_step_4': return 4;
-      case 'quiz_step_5': return 5;
+      case 'quiz_step_5': return 4;
+      case 'quiz_step_4': return 5;
       case 'quiz_step_6': return 6;
       case 'contacto': return 6; // Last form step
       default: return 0;
@@ -120,23 +124,23 @@ export default function App() {
   };
 
   const getStepProgressPercentage = () => {
-    const totalPresentationSteps = 5;
-    const currentQuizNum = getQuizStepNumber();
+    const steps = [
+      'portada',
+      'quiz_step_1',
+      'quiz_step_2',
+      'alcance_digital',
+      'quiz_step_3',
+      'fuerza_comercial',
+      'quiz_step_5',
+      'analisis_mercado',
+      'quiz_step_4',
+      'quiz_step_6',
+      'contacto'
+    ];
     
-    // Presentation phase
-    if (currentStep === 'portada') return 5;
-    if (currentStep === 'propuesta_valor') return 15;
-    if (currentStep === 'alcance_digital') return 25;
-    if (currentStep === 'fuerza_comercial') return 35;
-    if (currentStep === 'analisis_mercado') return 45;
-
-    // Quiz phase
-    if (currentStep.startsWith('quiz_step_')) {
-      return 45 + (currentQuizNum / totalQuizSteps) * 45;
-    }
-    if (currentStep === 'contacto') return 92;
-    if (currentStep === 'processing' || currentStep === 'confirmacion') return 100;
-    return 100;
+    const idx = steps.indexOf(currentStep);
+    if (idx === -1) return 100;
+    return Math.min(100, Math.floor(((idx + 1) / steps.length) * 100));
   };
 
   // Safe navigation function
@@ -159,7 +163,7 @@ export default function App() {
   };
 
   // Safe triggers on crucial properties to synchronize prices
-  const handleIntentionChange = (intention: 'Vender' | 'Alquilar') => {
+  const handleIntentionChange = (intention: 'Vender' | 'Alquilar' | 'Valuar') => {
     let defaultValue = '200000';
     if (intention === 'Alquilar') {
       defaultValue = quizData.currency === 'USD' ? '2000' : '7000';
@@ -206,15 +210,31 @@ export default function App() {
     }
   }, [currentStep]);
 
-  // Handle auto-redirection immediately upon reaching 100%
+  // Handle auto-redirection immediately upon reaching 100% to go to thank you screen first, then auto-trigger WhatsApp
   useEffect(() => {
     if (currentStep === 'processing' && redirectProgress === 100) {
       const timer = setTimeout(() => {
-        window.location.href = getWhatsAppLink();
+        setCurrentStep('confirmacion');
       }, 400);
       return () => clearTimeout(timer);
     }
   }, [redirectProgress, currentStep]);
+
+  useEffect(() => {
+    if (currentStep === 'confirmacion') {
+      const timer = setTimeout(() => {
+        window.location.href = getWhatsAppLink();
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep]);
+
+  const formatValueWithDots = (val: string | number) => {
+    if (val === undefined || val === null || val === '') return '';
+    const numStr = val.toString().replace(/\D/g, '');
+    if (!numStr) return '';
+    return Number(numStr).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
 
   // Formatted price representation for high aesthetic consistency
   const formattedPrice = () => {
@@ -506,7 +526,7 @@ export default function App() {
                   </div>
 
                   <button 
-                    onClick={() => goTo('propuesta_valor')}
+                    onClick={() => goTo('quiz_step_1')}
                     className="btn-geometric-primary group w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
                   >
                     CONOCER LA ESTRATEGIA
@@ -514,89 +534,6 @@ export default function App() {
                   </button>
                 </motion.div>
               )}
-
-
-              {/* --- STAGE 2: PROPUESTA DE VALOR --- */}
-              {currentStep === 'propuesta_valor' && (
-                <motion.div 
-                  key="propuesta_valor"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
-                      <ArrowLeft size={16} />
-                    </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">02 / PROPUESTA DE VALOR</span>
-                    <div className="w-8"></div>
-                  </div>
-
-                  <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-left leading-tight mb-1.5">
-                    ¿Por qué algunas propiedades se venden más rápido que otras?
-                  </h2>
-                  <p className="text-brand-black font-extrabold text-[10px] uppercase tracking-wider pl-3 border-l-2 border-brand-gold mb-3 mt-1 text-left">
-                    Porque no basta con publicarlas en uno o dos lugares.
-                  </p>
-                  <p className="text-gray-500 text-[11px] text-left mb-4 leading-normal">
-                    En Honne trabajamos sobre cuatro pilares estratégicos de alta efectividad que marcan una diferencia contundente en el mercado:
-                  </p>
-
-                  {/* Four pillars container */}
-                  <div className="space-y-2 text-left mb-5">
-                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
-                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
-                        <Radio size={14} />
-                      </div>
-                      <div>
-                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Alcance digital</h4>
-                        <p className="text-[10px] text-gray-500 leading-tight">Estrategias masivas multicanal para llegar a más compradores calificados.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
-                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
-                        <Users size={14} />
-                      </div>
-                      <div>
-                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Fuerza comercial</h4>
-                        <p className="text-[10px] text-gray-500 leading-tight">Un equipo unificado enfocado en multiplicar las visitas y oportunidades.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
-                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
-                        <LineChart size={14} />
-                      </div>
-                      <div>
-                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Análisis de mercado</h4>
-                        <p className="text-[10px] text-gray-500 leading-tight">Datos geográficos precisos para definir el precio correcto del bien.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 p-2.5 border border-gray-medium rounded-sm items-center">
-                      <div className="p-1.5 bg-brand-gold text-brand-black rounded-sm shrink-0">
-                        <Cpu size={14} />
-                      </div>
-                      <div>
-                        <h4 className="text-[11px] font-extrabold uppercase tracking-wide text-brand-black">Tecnología e IA</h4>
-                        <p className="text-[10px] text-gray-500 leading-tight">Sistemas automatizados e Inteligencia Artificial para ser más rápido que los demás.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => goTo('alcance_digital')}
-                    className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
-                  >
-                    CONTINUAR
-                    <ArrowRight size={14} />
-                  </button>
-                </motion.div>
-              )}
-
-
               {/* --- STAGE 3: ALCANCE DIGITAL --- */}
               {currentStep === 'alcance_digital' && (
                 <motion.div 
@@ -604,69 +541,56 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center text-left"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">03 / ALCANCE DIGITAL</span>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-zinc-400 font-mono">// COBERTURA DIGITAL</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <span className="text-[9px] text-brand-black font-extrabold bg-brand-gold mr-auto px-2 py-0.5 uppercase tracking-widest mb-3 rounded-none">
-                    Alcance de nivel superior
-                  </span>
-                  
-                  <h2 className="text-base sm:text-lg md:text-xl font-black text-left leading-tight mb-4">
-                    Infraestructura digital masiva para visibilizar tu propiedad
+                  <h2 className="text-xl sm:text-2xl font-black leading-tight mb-2">
+                    Porque no basta con publicarlas en uno o dos lugares.
                   </h2>
+                  <p className="text-zinc-500 text-[11px] leading-normal mb-5">
+                    Desplegamos una infraestructura publicitaria robusta diseñada para captar el 100% de la demanda potencial:
+                  </p>
 
-                   <div className="grid grid-cols-2 gap-2 text-left mb-6 font-sans">
-                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem]">
-                      <Radio size={16} className="text-brand-black opacity-60" />
-                      <div>
-                        <p className="text-xs sm:text-sm font-black">+700 mil</p>
-                        <p className="text-[8.5px] text-gray-500 uppercase tracking-wider mt-0.5 font-bold leading-tight">seguidores</p>
-                      </div>
+                  {/* Gigantic visual metric block */}
+                  <div className="bg-zinc-900 text-white p-5 sm:p-6 text-left mb-4.5 border-l-4 border-brand-gold">
+                    <span className="font-mono text-[9px] tracking-widest uppercase text-zinc-400">PÚBLICO ALCANZADO</span>
+                    <div className="text-3xl sm:text-4xl font-black text-brand-gold tracking-tight leading-none mt-1">+700K</div>
+                    <p className="text-[10px] sm:text-[11px] font-bold text-zinc-300 uppercase tracking-wide mt-1">SEGUIDORES</p>
+                  </div>
+
+                  {/* Detailed features columns */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left mb-6 font-sans">
+                    <div className="p-3 border border-gray-medium rounded-sm bg-white">
+                      <Globe size={16} className="text-brand-black mb-2" />
+                      <h4 className="text-xs font-black uppercase tracking-wide text-brand-black">PORTALES INMOBILIARIOS</h4>
+                      <p className="text-[10px] text-gray-500 leading-normal mt-1 font-semibold">Exposición simultánea en todos los portales inmobiliarios líderes del Perú.</p>
                     </div>
 
-                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem]">
-                      <Globe size={16} className="text-brand-black opacity-60" />
-                      <div>
-                        <p className="text-xs sm:text-sm font-black">Presencia en 12</p>
-                        <p className="text-[8.5px] text-gray-500 uppercase tracking-wider mt-0.5 font-bold leading-tight">portales inmobiliarios</p>
-                      </div>
+                    <div className="p-3 border border-gray-medium rounded-sm bg-white">
+                      <Video size={16} className="text-brand-black mb-2" />
+                      <h4 className="text-xs font-black uppercase tracking-wide text-brand-black">PRODUCCIÓN AUDIOVISUAL</h4>
+                      <p className="text-[10px] text-gray-500 leading-normal mt-1 font-semibold">producción audiovisual especializada y profesional, seguimiento y remarketing.</p>
                     </div>
 
-                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem] col-span-2">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <Video size={16} className="text-brand-black opacity-60" />
-                        <span className="text-[7.5px] uppercase tracking-wider font-extrabold text-brand-gold bg-zinc-900 px-1.5 py-0.5">EXCLUSIVO</span>
-                      </div>
-                      <div>
-                        <p className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-tight text-zinc-900">producción audiovisual especializada y profesional</p>
-                        <p className="text-[8.5px] text-zinc-500 font-semibold mt-0.5 leading-tight">con seguimiento y remarketing permanente para llegar al perfil ideal.</p>
-                      </div>
-                    </div>
-
-                    <div className="p-2.5 bg-gray-light border-b-2 border-brand-gold flex flex-col justify-between min-h-[5.5rem] col-span-2">
-                      <div className="flex justify-between items-center mb-0.5">
-                        <Target size={16} className="text-brand-black opacity-60" />
-                        <span className="text-[7.5px] uppercase tracking-wider font-extrabold text-brand-gold bg-zinc-900 px-1.5 py-0.5">TECNOLÓGICO</span>
-                      </div>
-                      <div>
-                        <p className="text-[9.5px] sm:text-[10px] font-black uppercase tracking-tight text-zinc-900">segmentación y campañas publicitarias</p>
-                        <p className="text-[8.5px] text-zinc-500 font-semibold mt-0.5 leading-tight">Estrategias robustas de pauta digital optimizadas en tiempo real.</p>
-                      </div>
+                    <div className="p-3 border border-gray-medium rounded-sm bg-white">
+                      <Target size={16} className="text-brand-black mb-2" />
+                      <h4 className="text-xs font-black uppercase tracking-wide text-brand-black">CAMPAÑAS PUBLICITARIAS</h4>
+                      <p className="text-[10px] text-gray-500 leading-normal mt-1 font-semibold">segmetacion y campañas publicitarias</p>
                     </div>
                   </div>
 
                   <button 
-                    onClick={() => goTo('fuerza_comercial')}
+                    onClick={() => goTo('quiz_step_3')}
                     className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
                   >
-                    SIGUIENTE
+                    CONTINUAR
                     <ArrowRight size={14} />
                   </button>
                 </motion.div>
@@ -686,52 +610,72 @@ export default function App() {
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">04 / FUERZA COMERCIAL</span>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-zinc-400 font-mono">// EL EQUIPO</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black text-left leading-tight mb-2">
-                    Tu propiedad no será promocionada por una sola persona
+                  <h2 className="text-xl sm:text-2xl font-black text-left leading-tight mb-4">
+                    Tu propiedad no la promueve una persona. La promueve un equipo.
                   </h2>
-                  <p className="text-gray-500 text-[11px] text-left mb-4">
-                    Multiplicamos las probabilidades de venta sincronizando a todo el equipo de asesores corporativos:
-                  </p>
 
-                  <div className="space-y-2 text-left mb-6">
-                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
-                      <UserCheck size={14} className="text-brand-black shrink-0" />
+                  {/* Overlapping interactive avatar representations mimicking screenshot +43 indicator */}
+                  <div className="flex items-center gap-3 bg-gray-light p-4 rounded-sm border border-gray-medium/80 mb-5">
+                    <div className="flex -space-x-2.5 overflow-hidden">
+                      {['M', 'S', 'B', 'H', 'R', 'P'].map((initial, i) => (
+                        <div 
+                          key={i} 
+                          className={`w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-black bg-zinc-900 text-brand-gold font-sans shadow-sm ring-1 ring-zinc-200`}
+                        >
+                          {initial}
+                        </div>
+                      ))}
+                      <div className="w-8 h-8 rounded-full bg-brand-gold text-brand-black border-2 border-white flex items-center justify-center text-[9px] font-black shadow-sm ring-1 ring-zinc-200">
+                        +43
+                      </div>
+                    </div>
+                    <div className="text-left">
+                      <span className="text-[8.5px] uppercase tracking-wider text-gray-400 font-bold block leading-none">Agentes Activos</span>
+                      <span className="text-[11px] font-extrabold text-brand-black">Sinergia comercial constante en Lima</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 text-left mb-6 font-sans">
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-brand-gold/20 flex items-center justify-center mt-0.5 shrink-0">
+                        <div className="w-2 h-2 bg-brand-gold rounded-full" />
+                      </div>
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Más de 50 agentes especializados</p>
+                        <p className="text-xs font-extrabold text-brand-black uppercase tracking-wider">Red colaborativa de +10mil agentes</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5 leading-normal">gracias a nuestro modelo de exclusividad compartida que maximiza la visibilidad de tu propiedad</p>
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
-                      <Network size={14} className="text-brand-black shrink-0" />
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-brand-gold/20 flex items-center justify-center mt-0.5 shrink-0">
+                        <div className="w-2 h-2 bg-brand-gold rounded-full" />
+                      </div>
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Red comercial colaborativa externa</p>
+                        <p className="text-xs font-extrabold text-brand-black uppercase tracking-wider">Visitas calificadas, sin perder tu tiempo</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5 leading-normal">Filtramos rigurosamente a los interesados antes de programar una visita, evitando curiosos no calificados.</p>
                       </div>
                     </div>
 
-                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
-                      <Eye size={14} className="text-brand-black shrink-0" />
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Visitas estrictamente calificadas</p>
+                    <div className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-brand-gold/20 flex items-center justify-center mt-0.5 shrink-0">
+                        <div className="w-2 h-2 bg-brand-gold rounded-full" />
                       </div>
-                    </div>
-
-                    <div className="p-2.5 bg-gray-light border-l-2 border-brand-gold flex gap-3 items-center">
-                      <Activity size={14} className="text-brand-black shrink-0" />
                       <div>
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-brand-black">Seguimiento comercial persistente</p>
+                        <p className="text-xs font-extrabold text-brand-black uppercase tracking-wider">seguimiento constante a clientes interesados</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5 leading-normal">que quedan registrados en una base de datos para hacer remarketing con IA</p>
                       </div>
                     </div>
                   </div>
 
                   <button 
-                    onClick={() => goTo('analisis_mercado')}
+                    onClick={() => goTo('quiz_step_5')}
                     className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
                   >
-                    SIGUIENTE
+                    CONTINUAR
                     <ArrowRight size={14} />
                   </button>
                 </motion.div>
@@ -745,28 +689,28 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center text-left"
                 >
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-4">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-widest text-zinc-400">05 / ANÁLISIS DE MERCADO</span>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wide text-zinc-400 font-mono">// ESTRATEGIA</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black text-left mb-1.5 leading-tight">
-                    Antes de publicar, analizamos el mercado
+                  <h2 className="text-xl sm:text-2xl font-black leading-tight mb-2">
+                    Antes de fijar un precio, analizamos el mercado.
                   </h2>
-                  <p className="text-gray-500 text-[10.5px] text-left mb-4 leading-normal">
-                    Utilizamos nuestro Análisis Comparativo de Mercado (ACM) para definir la estrategia correcta y evitar perder tiempo valioso.
+                  <p className="text-gray-500 text-[11px] leading-relaxed mb-6 font-sans">
+                    Utilizamos un Análisis Comparativo de Mercado (ACM) estructurado para evitar que tu propiedad quede estancada o se venda por debajo de su valor real.
                   </p>
 
                   {/* PREMIUM SVG BELL CURVE CHART ("Punto de equilibrio") */}
-                  <div className="bg-gray-light p-3 rounded-sm border border-gray-medium relative mb-4 flex flex-col items-center justify-center">
-                    <span className="text-[7px] font-mono tracking-widest text-gray-400 absolute top-2 right-3 uppercase">Modelo de Demanda v1.0</span>
+                  <div className="bg-gray-light p-4 rounded-sm border border-gray-medium/80 relative mb-5 flex flex-col items-center justify-center">
+                    <span className="text-[7.5px] font-mono tracking-widest text-gray-400 absolute top-2 right-3 uppercase font-extrabold">Algoritmo de Posicionamiento v2.0</span>
                     
-                    <svg viewBox="0 0 400 180" className="w-full h-24 sm:h-28 font-sans">
+                    <svg viewBox="0 0 400 180" className="w-full h-24 sm:h-28 font-sans mt-2">
                       <defs>
                         <linearGradient id="curveGradient" x1="0%" y1="100%" x2="0%" y2="0%">
                           <stop offset="0%" stopColor="#fff" stopOpacity={0.1} />
@@ -781,53 +725,53 @@ export default function App() {
                       />
 
                       {/* Base axis */}
-                      <line x1="20" y1="150" x2="380" y2="150" stroke="#E0E0E0" strokeWidth="1.5" strokeLinecap="round" />
+                      <line x1="20" y1="150" x2="380" y2="150" stroke="#CCCCCC" strokeWidth="1.5" strokeLinecap="round" />
 
                       {/* Main elegant bell curve */}
                       <path 
                         d="M 40,150 C 120,150 140,30 200,30 C 260,30 280,150 360,150" 
                         fill="none" 
                         stroke="#111111" 
-                        strokeWidth="3" 
+                        strokeWidth="3.5" 
                         strokeLinecap="round" 
                       />
 
                       {/* Dashed vertical lines indicating zones */}
                       <line x1="200" y1="30" x2="200" y2="150" stroke="#111111" strokeWidth="1" strokeDasharray="3,3" />
-                      <line x1="120" y1="100" x2="120" y2="150" stroke="#E0E0E0" strokeWidth="1" strokeDasharray="3,3" />
-                      <line x1="280" y1="100" x2="280" y2="150" stroke="#E0E0E0" strokeWidth="1" strokeDasharray="3,3" strokeOpacity={0.5} />
+                      <line x1="120" y1="100" x2="120" y2="150" stroke="#CCCCCC" strokeWidth="1" strokeDasharray="3,3" />
+                      <line x1="280" y1="100" x2="280" y2="150" stroke="#CCCCCC" strokeWidth="1" strokeDasharray="3,3" strokeOpacity={0.5} />
 
                       {/* Equilibrium Glowing Dot */}
-                      <circle cx="200" cy="30" r="6" fill="#111111" className="animate-pulse" />
-                      <circle cx="200" cy="30" r="3" fill="#ffed51" />
+                      <circle cx="200" cy="30" r="7" fill="#111111" className="animate-pulse" />
+                      <circle cx="200" cy="30" r="3.5" fill="#ffed51" />
                     </svg>
 
                     {/* Chart legends matching the references */}
-                    <div className="grid grid-cols-3 w-full text-center mt-2.5 text-[8px] uppercase tracking-wider font-extrabold font-mono">
-                      <div className="text-rose-500">
-                        <p>📉 Muy Barato</p>
-                        <p className="text-[7.5px] font-normal text-gray-400 lowercase italic">pierdes dinero</p>
+                    <div className="grid grid-cols-3 w-full text-center mt-3.5 text-[8.5px] uppercase tracking-wider font-extrabold font-mono">
+                      <div className="text-gray-400">
+                        <p>📉 Barato</p>
+                        <p className="text-[7.5px] font-normal text-gray-400 lowercase italic">pierdes rentabilidad</p>
                       </div>
-                      <div className="text-zinc-900 border-x border-gray-medium px-1 bg-brand-gold/20">
+                      <div className="text-zinc-900 border-x border-gray-medium/80 px-1 bg-brand-gold/15">
                         <p>✨ Equilibrio</p>
-                        <p className="text-[7.5px] font-normal text-gray-500 lowercase italic">precio óptimo</p>
+                        <p className="text-[7.5px] font-normal text-gray-500 lowercase italic">precio ideal</p>
                       </div>
-                      <div className="text-orange-500">
+                      <div className="text-rose-500">
                         <p>📈 Muy Caro</p>
-                        <p className="text-[7.5px] font-normal text-gray-400 lowercase italic">quemas tu bien</p>
+                        <p className="text-[7.5px] font-normal text-gray-400 lowercase italic">sin llamadas ni visitas</p>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-gray-400 text-[10px] text-justify leading-relaxed mb-5 italic border-l-2 border-brand-gold pl-3">
-                    "Buscamos el punto de equilibrio exacto entre el precio de mercado y la demanda inmediata para asegurar una transacción exitosa."
+                  <p className="text-gray-500 text-[11px] text-justify leading-relaxed mb-6 italic border-l-2 border-brand-gold pl-3 font-medium">
+                    "Identificamos la ventana de oportunidad exacta donde el valor percibido del cliente se intersecta con la máxima rentabilidad para ti."
                   </p>
 
                   <button 
-                    onClick={() => goTo('quiz_step_1')}
+                    onClick={() => goTo('quiz_step_4')}
                     className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5"
                   >
-                    QUIERO PROBAR EL MÉTODO HONNE
+                    CONTINUAR
                     <ArrowRight size={14} />
                   </button>
                 </motion.div>
@@ -841,29 +785,29 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center text-left"
                 >
                   <div className="flex justify-between items-center mb-6">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 01 / 06</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1.5 text-center text-brand-black">¿Qué deseas hacer?</h2>
-                  <p className="text-gray-400 mb-6 text-center text-[11px]">Selecciona la intención para personalizar tu Ruta Honne</p>
+                  <h2 className="text-xl sm:text-2xl font-black mb-6 text-brand-black">¿Qué deseas hacer con tu propiedad?</h2>
 
-                  <div className="grid grid-cols-2 gap-3 w-full">
+                  <div className="space-y-3 w-full">
                     <button 
                       onClick={() => {
                         handleIntentionChange('Vender');
                         goTo('quiz_step_2');
                       }} 
-                      className={`option-card py-8 flex flex-col items-center gap-2 ${quizData.intention === 'Vender' ? 'selected border-2 border-brand-black' : ''}`}
+                      className={`w-full py-4 px-5 border text-left flex items-center justify-between transition-all duration-300 rounded-sm hover:border-brand-black cursor-pointer bg-white group ${quizData.intention === 'Vender' ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black' : 'border-gray-medium'}`}
                     >
-                      <span className="text-sm sm:text-base font-black uppercase tracking-wider text-brand-black">VENDER</span>
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400">mi propiedad</span>
+                      <span className="text-xs uppercase tracking-wider font-extrabold text-brand-black">Vender</span>
+                      <div className="w-4 h-4 rounded-full border border-gray-medium flex items-center justify-center">
+                        {quizData.intention === 'Vender' && <div className="w-2 h-2 bg-brand-gold rounded-full" />}
+                      </div>
                     </button>
 
                     <button 
@@ -871,10 +815,25 @@ export default function App() {
                         handleIntentionChange('Alquilar');
                         goTo('quiz_step_2');
                       }} 
-                      className={`option-card py-8 flex flex-col items-center gap-2 ${quizData.intention === 'Alquilar' ? 'selected border-2 border-brand-black' : ''}`}
+                      className={`w-full py-4 px-5 border text-left flex items-center justify-between transition-all duration-300 rounded-sm hover:border-brand-black cursor-pointer bg-white group ${quizData.intention === 'Alquilar' ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black' : 'border-gray-medium'}`}
                     >
-                      <span className="text-sm sm:text-base font-black uppercase tracking-wider text-brand-black">ALQUILAR</span>
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400">mi propiedad</span>
+                      <span className="text-xs uppercase tracking-wider font-extrabold text-brand-black">Alquilar</span>
+                      <div className="w-4 h-4 rounded-full border border-gray-medium flex items-center justify-center">
+                        {quizData.intention === 'Alquilar' && <div className="w-2 h-2 bg-brand-gold rounded-full" />}
+                      </div>
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        handleIntentionChange('Valuar');
+                        goTo('quiz_step_2');
+                      }} 
+                      className={`w-full py-4 px-5 border text-left flex items-center justify-between transition-all duration-300 rounded-sm hover:border-brand-black cursor-pointer bg-white group ${quizData.intention === 'Valuar' ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black' : 'border-gray-medium'}`}
+                    >
+                      <span className="text-xs uppercase tracking-wider font-extrabold text-brand-black">Solo quiero valuarla</span>
+                      <div className="w-4 h-4 rounded-full border border-gray-medium flex items-center justify-center">
+                        {quizData.intention === 'Valuar' && <div className="w-2 h-2 bg-brand-gold rounded-full" />}
+                      </div>
                     </button>
                   </div>
                 </motion.div>
@@ -888,25 +847,24 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center text-left"
                 >
                   <div className="flex justify-between items-center mb-6">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 02 / 06</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1.5 text-center text-brand-black">¿Qué tipo de propiedad es?</h2>
-                  <p className="text-gray-400 mb-6 text-center text-[11px]">Selecciona una opción</p>
+                  <h2 className="text-xl sm:text-2xl font-black mb-6 text-brand-black">¿Qué tipo de propiedad es?</h2>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-2.5">
                     {[
                       { type: 'Departamento', icon: Building2 },
                       { type: 'Casa', icon: Home },
+                      { type: 'Oficina', icon: Briefcase },
                       { type: 'Terreno', icon: MapIcon },
-                      { type: 'Local Comercial', icon: Store }
+                      { type: 'Otro', icon: Layers }
                     ].map((item) => {
                       const Icon = item.icon;
                       return (
@@ -914,14 +872,14 @@ export default function App() {
                           key={item.type}
                           onClick={() => {
                             setQuizData(prev => ({ ...prev, type: item.type as PropertyType }));
-                            goTo('quiz_step_3');
+                            goTo('alcance_digital');
                           }}
-                          className={`option-card flex flex-col items-center justify-center p-4 sm:p-5 ${quizData.type === item.type ? 'selected ring-2 ring-brand-black border-brand-black' : ''}`}
+                          className={`border p-4 flex flex-col items-center justify-center gap-2 rounded-sm transition-all duration-300 hover:border-brand-black cursor-pointer bg-white ${quizData.type === item.type ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black' : 'border-gray-medium'}`}
                         >
-                          <div className="option-icon-wrapper mb-1.5 w-8 h-8">
+                          <div className="w-8 h-8 rounded-full border border-gray-medium/60 flex items-center justify-center shrink-0">
                             <Icon size={14} className="text-brand-black" />
                           </div>
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-brand-black">{item.type}</span>
+                          <span className="text-[10px] font-extrabold uppercase tracking-wide text-brand-black">{item.type}</span>
                         </button>
                       );
                     })}
@@ -939,140 +897,75 @@ export default function App() {
                   exit={{ opacity: 0, x: -20 }}
                   className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto text-left justify-center"
                 >
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-6">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 03 / 06</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">¿Dónde está ubicada tu propiedad?</h2>
-                  <p className="text-gray-400 mb-4 text-center text-[11px]">Ingresa la dirección o distrito</p>
+                  <h2 className="text-xl sm:text-2xl font-black mb-6 text-brand-black">¿En qué distrito se encuentra?</h2>
 
                   <div className="space-y-4 font-sans">
-                    {/* Address search box */}
-                    <div className="space-y-1">
-                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Ubicación física / Dirección</label>
-                      <div className="relative flex items-center bg-gray-light border border-gray-medium rounded-sm focus-within:border-brand-black transition-all">
-                        <input 
-                          type="text" 
-                          value={quizData.address}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setQuizData(prev => ({ ...prev, address: val }));
-                            setShowAddressSuggestions(val.length > 2);
-                          }}
-                          placeholder="Ej. Av. Larco 123, Miraflores..."
-                          className="w-full bg-transparent px-4 py-3 text-xs font-semibold focus:outline-none pr-10 text-brand-black"
-                        />
-                        <MapPin size={14} className="absolute right-4 text-gray-400" />
-                      </div>
+                    {/* Input box for writing directly */}
+                    <div className="bg-gray-light p-4 rounded-sm border border-gray-medium/60">
+                      <label className="text-[9px] font-mono tracking-widest font-extrabold uppercase text-gray-400 block mb-2">// Escribe tu distrito directamente</label>
+                      <input 
+                        type="text"
+                        value={quizData.district || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setQuizData(prev => ({
+                            ...prev,
+                            district: val,
+                            address: val
+                          }));
+                        }}
+                        placeholder="Nombre de tu distrito..."
+                        className="w-full bg-white border border-gray-medium focus:border-brand-black px-4 py-3 text-xs font-black uppercase text-brand-black focus:outline-none rounded-sm font-mono tracking-wider focus:ring-1 focus:ring-brand-black"
+                      />
                     </div>
 
-                    {/* Quick District Select Chips Grid */}
-                    <div className="space-y-1.5 pt-2">
-                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-zinc-400 block mb-1">Selección Rápida de Distrito Premium</label>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          { name: 'Miraflores', label: '🌊 Miraflores' },
-                          { name: 'San Isidro', label: '🌳 San Isidro' },
-                          { name: 'Santiago de Surco', label: '🏡 Surco' },
-                          { name: 'San Borja', label: '🚴 San Borja' },
-                          { name: 'Barranco', label: '🎨 Barranco' },
-                          { name: 'La Molina', label: '⛰️ La Molina' }
-                        ].map((item) => {
-                          const isSelected = quizData.district === item.name;
+                    {/* Quick select grid */}
+                    <div>
+                      <p className="text-[9px] uppercase font-mono tracking-widest font-bold text-gray-400 mb-2.5">// O selecciona de Lima Top & Lima Moderna:</p>
+                      <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 max-h-[185px] overflow-y-auto pr-1 no-scrollbar border-b border-gray-light pb-2">
+                        {PREMIUM_DISTRICTS.filter(d => d !== 'Otro distrito').map((d) => {
+                          const isSelected = !!quizData.district && quizData.district.toLowerCase() === d.toLowerCase();
                           return (
-                            <motion.button
+                            <button
                               type="button"
-                              key={item.name}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
+                              key={d}
                               onClick={() => {
                                 setQuizData(prev => ({
                                   ...prev,
-                                  district: item.name,
-                                  address: prev.address || item.name
+                                  district: d,
+                                  address: d
                                 }));
                               }}
-                              className={`py-2 px-1 border text-center rounded-sm transition-all text-[9.5px] uppercase font-bold tracking-wider cursor-pointer ${
+                              className={`py-2.5 px-2 border text-center rounded-sm transition-all duration-200 text-[10px] font-extrabold uppercase tracking-wide cursor-pointer bg-white hover:border-brand-black ${
                                 isSelected 
-                                  ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm font-black' 
-                                  : 'border-gray-medium bg-white hover:border-black text-brand-black'
+                                  ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black text-brand-black' 
+                                  : 'border-gray-medium text-gray-500'
                               }`}
                             >
-                              {item.label}
-                            </motion.button>
+                              {d}
+                            </button>
                           );
                         })}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1">
-                      <div className="h-[1px] bg-gray-medium flex-1 opacity-60" />
-                      <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-zinc-400">o busca otro distrito de Lima</span>
-                      <div className="h-[1px] bg-gray-medium flex-1 opacity-60" />
-                    </div>
-
-                    {/* District Dropdown Select Fallback */}
-                    <div className="space-y-1">
-                      <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Todos los Distritos</label>
-                      <div className="relative">
-                        <select 
-                          value={quizData.district}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setQuizData(prev => ({ 
-                                ...prev, 
-                                district: val,
-                                address: prev.address || (val !== 'Otro distrito' ? val : '')
-                            }));
-                          }}
-                          className="w-full bg-gray-light border border-gray-medium px-4 py-3 text-xs font-semibold focus:outline-none appearance-none cursor-pointer rounded-sm text-brand-black"
-                        >
-                          <option value="">-- Elige de la lista completa --</option>
-                          {PREMIUM_DISTRICTS.map((d) => (
-                            <option key={d} value={d}>{d}</option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
-                          <span className="text-[10px]">▼</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Another custom district element if selected 'Otro distrito' */}
-                    {quizData.district === 'Otro distrito' && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: -5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-1"
+                    <div className="pt-2">
+                      <button 
+                        disabled={!quizData.district || !quizData.district.trim()}
+                        onClick={() => goTo('fuerza_comercial')}
+                        className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 sm:py-3.5 disabled:opacity-30 disabled:pointer-events-none"
                       >
-                        <label className="text-[8px] uppercase tracking-widest font-extrabold text-gray-400">Nombre del distrito</label>
-                        <input 
-                          type="text"
-                          value={otherDistrict}
-                          onChange={(e) => {
-                            setOtherDistrict(e.target.value);
-                            setQuizData(prev => ({ ...prev, address: prev.address || e.target.value }));
-                          }}
-                          placeholder="Escribe el nombre del distrito..."
-                          className="w-full bg-gray-light border border-gray-medium px-4 py-3 text-xs font-semibold focus:outline-none rounded-sm"
-                        />
-                      </motion.div>
-                    )}
-                  </div>
-
-                  <div className="mt-5">
-                    <button 
-                      disabled={!quizData.address && !quizData.district}
-                      onClick={() => goTo('quiz_step_4')}
-                      className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 disabled:opacity-30 disabled:pointer-events-none"
-                    >
-                      CONTINUAR
-                      <ArrowRight size={14} />
-                    </button>
+                        CONTINUAR
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -1085,18 +978,17 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-xl mx-auto justify-center text-left"
                 >
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-6">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 04 / 06</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">¿Cuál es tu expectativa económica?</h2>
-                  <p className="text-gray-400 mb-4 text-center text-[11px]">
+                  <h2 className="text-xl sm:text-2xl font-black mb-1.5 text-brand-black">¿Cuál es tu expectativa económica?</h2>
+                  <p className="text-gray-400 mb-6 text-[11px]">
                     {quizData.intention === 'Alquilar' ? '¿Cuánto esperas obtener por la renta?' : '¿Cuánto esperas obtener por la venta?'}
                   </p>
 
@@ -1119,34 +1011,20 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Huge formatted display input */}
-                    <div className="space-y-3">
-                      <div className="bg-gray-light border border-gray-medium p-3.5 rounded-sm flex items-center justify-between shadow-inner">
-                        <span className="text-base font-black text-gray-400 uppercase tracking-wider font-mono mr-4 shrink-0">
-                          {quizData.currency === 'USD' ? 'US$' : 'S/'}
-                        </span>
-                        
-                        <input 
-                          type="number"
-                          value={quizData.value}
-                          onChange={(e) => setQuizData(prev => ({ ...prev, value: e.target.value }))}
-                          className="w-full bg-transparent text-right text-xl font-black focus:outline-none text-brand-black"
-                          placeholder="000.000"
-                        />
-                      </div>
-
-                      {quizData.value && (
-                        <div className="flex justify-between items-center px-2 bg-zinc-900 text-brand-gold text-[11px] font-black py-1.5 rounded-sm shadow-sm select-none">
-                          <span className="uppercase font-mono tracking-widest text-[8px] text-zinc-400">LECTURA FORMATEADA:</span>
-                          <span className="font-mono text-xs sm:text-sm">
-                            {quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(quizData.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                    <div className="space-y-4">
+                      {/* Fully Custom responsive Range Slider matching design reference (placed ABOVE the price input) */}
+                      <div className="space-y-2 pb-1 bg-gray-light/50 p-3 rounded-sm border border-gray-medium/40">
+                        {/* Slide explanation graphic helper representing drag capability */}
+                        <div className="flex items-center gap-2 justify-center py-1.5 px-3 bg-zinc-900 border border-brand-gold/20 rounded-sm select-none">
+                          <svg width="18" height="10" viewBox="0 0 24 12" className="animate-pulse shrink-0">
+                            <path d="M4 6H20M4 6L8 2M4 6L8 10M20 6L16 2M20 6L16 10" stroke="#ffed51" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                          <span className="text-[9px] font-black uppercase tracking-wider text-brand-gold font-mono leading-none">
+                            BARRA INTERACTIVA · DESLIZA PARA AJUSTAR
                           </span>
                         </div>
-                      )}
 
-                      {/* Fully Custom responsive Range Slider matching design reference */}
-                      <div className="space-y-1.5 pt-2">
-                        <div className="relative w-full h-1.5 bg-gray-light rounded-full border border-gray-medium">
+                        <div className="relative w-full h-2.5 bg-gray-light rounded-full border border-gray-medium mt-3 mb-1">
                           {/* Active filled track */}
                           <div 
                             className="absolute top-0 left-0 h-full bg-brand-black rounded-full"
@@ -1160,19 +1038,50 @@ export default function App() {
                             step={sliderParams.step}
                             value={quizData.value || sliderParams.min}
                             onChange={(e) => setQuizData(prev => ({ ...prev, value: e.target.value }))}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                           />
                           {/* Visible handle thumb */}
                           <div 
-                            className="absolute top-1/2 -mt-1.5 w-3.5 h-3.5 bg-brand-gold border-[1.5px] border-brand-black rounded-full shadow-md pointer-events-none transform -translate-x-1/2"
+                            className="absolute top-1/2 -mt-2 w-4 h-4 bg-brand-gold border-2 border-brand-black rounded-full shadow-md pointer-events-none transform -translate-x-1/2 flex items-center justify-center"
                             style={{ left: `${sliderPercentage}%` }}
-                          />
+                          >
+                            <div className="w-1.5 h-1.5 bg-brand-black rounded-full" />
+                          </div>
                         </div>
 
-                        <div className="flex justify-between text-[8px] text-gray-400 font-mono">
+                        <div className="flex justify-between text-[8px] text-gray-500 font-mono font-extrabold">
                           <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(sliderParams.min).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span>
                           <span>{quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(sliderParams.max).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</span>
                         </div>
+                      </div>
+
+                      {/* Price reader display input block (placed BELOW physical slider) */}
+                      <div className="space-y-2">
+                        <div className="bg-gray-light border border-gray-medium p-3 rounded-sm flex items-center justify-between shadow-inner">
+                          <span className="text-base font-black text-gray-400 uppercase tracking-wider font-mono mr-4 shrink-0 select-none">
+                            {quizData.currency === 'USD' ? 'US$' : 'S/'}
+                          </span>
+                          
+                          <input 
+                            type="text"
+                            value={formatValueWithDots(quizData.value)}
+                            onChange={(e) => {
+                              const rawNum = e.target.value.replace(/\D/g, '');
+                              setQuizData(prev => ({ ...prev, value: rawNum }));
+                            }}
+                            className="w-full bg-transparent text-right text-xl font-black focus:outline-none text-brand-black font-mono"
+                            placeholder="000.000"
+                          />
+                        </div>
+
+                        {quizData.value && (
+                          <div className="flex justify-between items-center px-2.5 bg-zinc-900 text-brand-gold text-[10px] font-black py-1.5 rounded-sm shadow-sm select-none">
+                            <span className="uppercase font-mono tracking-widest text-[8px] text-zinc-400">EXPECTATIVA DE {quizData.intention === 'Alquilar' ? 'RENTA' : 'VENTA'}:</span>
+                            <span className="font-mono text-xs sm:text-sm">
+                              {quizData.currency === 'USD' ? 'US$' : 'S/'} {Number(quizData.value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Dynamic Strategy Feedback Card */}
@@ -1277,7 +1186,7 @@ export default function App() {
                     <div className="pt-2">
                       <button 
                         disabled={!quizData.value || Number(quizData.value) <= 0}
-                        onClick={() => goTo('quiz_step_5')}
+                        onClick={() => goTo('quiz_step_6')}
                         className="btn-geometric-primary w-full flex items-center justify-center gap-4 py-3 disabled:opacity-30 disabled:pointer-events-none"
                       >
                         CONTINUAR
@@ -1296,41 +1205,37 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center text-left"
                 >
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-6">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 05 / 06</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">
-                    ¿Cuándo te gustaría {quizData.intention === 'Alquilar' ? 'alquilar' : 'vender'}?
+                  <h2 className="text-xl sm:text-2xl font-black mb-6 text-brand-black">
+                    ¿En cuánto tiempo te gustaría vender?
                   </h2>
-                  <p className="text-gray-400 mb-4 text-center text-[11px]">Selecciona la opción para continuar automáticamente</p>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-3">
                     {[
                       'Lo antes posible',
-                      'Entre 0 a 3 meses',
-                      'Entre 3 a 6 meses',
-                      'Entre 6 a 12 meses'
+                      'En 1 - 3 meses',
+                      'En 3 - 6 meses',
+                      'Solo estoy explorando'
                     ].map((item) => (
                       <button 
                         key={item}
                         onClick={() => {
                           setQuizData(prev => ({ ...prev, timeline: item }));
-                          goTo('quiz_step_6');
+                          goTo('analisis_mercado');
                         }}
-                        className={`w-full py-3 px-4 border text-left flex items-center justify-between group transition-all duration-300 ${quizData.timeline === item ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' : 'border-gray-medium bg-white hover:border-black text-brand-black'}`}
+                        className={`w-full py-4 px-5 border text-left flex items-center justify-between transition-all duration-300 rounded-sm hover:border-brand-black cursor-pointer bg-white group ${quizData.timeline === item ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black' : 'border-gray-medium'}`}
                       >
-                        <span className="text-xs uppercase tracking-wide font-extrabold">{item}</span>
-                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${quizData.timeline === item ? 'border-brand-gold bg-brand-gold' : 'border-gray-medium'}`}>
-                          {quizData.timeline === item && (
-                            <div className="w-1 h-1 bg-black rounded-full" />
-                          )}
+                        <span className="text-xs uppercase tracking-wide font-extrabold text-brand-black">{item}</span>
+                        <div className="w-4 h-4 rounded-full border border-gray-medium flex items-center justify-center">
+                          {quizData.timeline === item && <div className="w-2 h-2 bg-brand-gold rounded-full" />}
                         </div>
                       </button>
                     ))}
@@ -1346,26 +1251,24 @@ export default function App() {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center"
+                  className="flex-1 flex flex-col p-4 sm:p-6 md:p-8 container max-w-lg mx-auto justify-center text-left"
                 >
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-6">
                     <button onClick={goBack} className="p-1.5 hover:bg-gray-light rounded-full transition-colors text-gray-400 hover:text-brand-black">
                       <ArrowLeft size={16} />
                     </button>
-                    <span className="text-[8px] font-extrabold uppercase tracking-[0.2em] text-zinc-400">PASO 06 / 06</span>
                     <div className="w-8"></div>
                   </div>
 
-                  <h2 className="text-base sm:text-lg md:text-xl font-black mb-1 text-center text-brand-black">
-                    Actualmente, ¿cómo estás gestionando la {quizData.intention === 'Alquilar' ? 'renta/alquiler' : 'venta'} de tu propiedad?
+                  <h2 className="text-xl sm:text-2xl font-black mb-6 text-brand-black">
+                    Actualmente, ¿cómo estás gestionando la venta de tu propiedad?
                   </h2>
-                  <p className="text-gray-400 mb-4 text-center text-[11px]">Selecciona la opción para continuar automáticamente</p>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-3">
                     {[
-                      quizData.intention === 'Alquilar' ? 'Aún no la estoy ofreciendo en alquiler.' : 'Aún no la estoy ofreciendo en venta.',
-                      quizData.intention === 'Alquilar' ? 'La estoy alquilando por mi cuenta.' : 'La estoy vendiendo por mi cuenta.',
-                      'La estoy trabajando con una agencia inmobiliaria.'
+                      'Aún no la estoy ofreciendo',
+                      'La estoy ofreciendo por mi cuenta',
+                      'La estoy trabajando con un agente inmobiliario'
                     ].map((item) => (
                       <button 
                         key={item}
@@ -1373,13 +1276,11 @@ export default function App() {
                           setQuizData(prev => ({ ...prev, attempted: item }));
                           goTo('contacto');
                         }}
-                        className={`w-full py-3 px-4 border text-left flex items-center justify-between group transition-all duration-300 ${quizData.attempted === item ? 'bg-zinc-900 border-zinc-900 text-white shadow-sm' : 'border-gray-medium bg-white hover:border-black text-brand-black'}`}
+                        className={`w-full py-4 px-5 border text-left flex items-center justify-between transition-all duration-300 rounded-sm hover:border-brand-black cursor-pointer bg-white group ${quizData.attempted === item ? 'border-brand-black bg-gray-light ring-1 ring-brand-black font-black' : 'border-gray-medium'}`}
                       >
-                        <span className="text-xs uppercase tracking-wide font-extrabold">{item}</span>
-                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-colors ${quizData.attempted === item ? 'border-brand-gold bg-brand-gold' : 'border-gray-medium'}`}>
-                          {quizData.attempted === item && (
-                            <div className="w-1 h-1 bg-black rounded-full" />
-                          )}
+                        <span className="text-xs uppercase tracking-wide font-extrabold text-brand-black">{item}</span>
+                        <div className="w-4 h-4 rounded-full border border-gray-medium flex items-center justify-center">
+                          {quizData.attempted === item && <div className="w-2 h-2 bg-brand-gold rounded-full" />}
                         </div>
                       </button>
                     ))}
